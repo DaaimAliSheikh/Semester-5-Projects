@@ -1,0 +1,2 @@
+- RUN THE APP:
+  - run `uvicorn src.main:app --reload` in the `fast-api-server` directory.
