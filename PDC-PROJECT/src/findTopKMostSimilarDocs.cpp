@@ -1,9 +1,31 @@
-
-
+#include "findTopKMostSimilarDocs.hpp"
+#include "loadIDFMap.hpp"
+#include "tokenize.hpp"
 #include <cmath>
+#include <fstream>
+#include <iostream>
 #include <map>
+#include <omp.h>
+#include <parseTfIdfVector.hpp>
 #include <string>
 #include <vector>
+
+// Function to calculate TF for a single document
+// how many times a word appears in a single sentence
+// eg: [{"hello":  0.1 },{"world":  0.2 }]
+std::map<std::string, double>
+calculateTF2(const std::vector<std::string> &doc) {
+  std::map<std::string, int> wordCount;
+  for (const auto &word : doc) {
+    wordCount[word]++;
+  }
+
+  std::map<std::string, double> tf;
+  for (const auto &word : wordCount) {
+    tf[word.first] = (double)word.second / doc.size();
+  }
+  return tf;
+}
 
 // Function to calculate the dot product of two TF-IDF vectors
 double dotProduct(const std::map<std::string, double> &vecA,
@@ -41,28 +63,77 @@ double cosineSimilarity(const std::map<std::string, double> &vecA,
 }
 
 // Function to find the most similar k documents
-std::vector<int> findTopKMostSimilarDocs(
-    const std::map<std::string, double> &inputTFIDF,
-    const std::vector<std::map<std::string, double>> &docTFIDFs, int k) {
-  // Map to store similarity scores and corresponding document indices
-  std::map<double, int, std::greater<>>
+std::vector<std::string> findTopKMostSimilarDocs(std::string sentence, int k,
+                                                 int numThreads) {
+  std::string idf_path = "document_files/idf.bin";
+  std::map<std::string, double> idf = loadIDFMap(idf_path);
+  std::map<std::string, double> inputTF = calculateTF2(tokenize(sentence));
+  std::map<std::string, double> inputTFIDF;
+
+  for (const auto &word : inputTF) {
+    auto it = idf.find(word.first);
+    double idfValue = (it != idf.end())
+                          ? it->second
+                          : 0.0; // Default IDF value if word not found
+    inputTFIDF[word.first] = word.second * idfValue;
+  }
+
+  //  for (const auto &word : inputTFIDF) {
+  //     std::cout << word.first << " " << word.second << std::endl;
+  //   }
+  // Map to store similarity scores and corresponding document sentences
+
+  std::map<double, std::string, std::greater<>>
       scoreMap; /// greater<> sorts the key(similarity score here) in descending
                 /// order when inserting a pair
 
-  // Compute similarity scores for all documents
-  for (int i = 0; i < docTFIDFs.size(); ++i) {
-    double similarity = cosineSimilarity(inputTFIDF, docTFIDFs[i]);
-    scoreMap[similarity] = i;
+  // array of local score maps
+  std::vector<std::map<double, std::string>> local_scoreMaps(numThreads);
+
+  // Set the number of threads for OpenMP
+  omp_set_num_threads(numThreads);
+
+// Parallelize the file reading using OpenMP
+#pragma omp parallel
+  {
+    int threadID = omp_get_thread_num();
+    std::ifstream inputFile("document_files/tf-idf-chunks/" +
+                            std::to_string(threadID) + ".txt");
+    if (!inputFile.is_open()) {
+      std::cout << "File chunk not found" << std::endl;
+    }
+    // calculate similarity score for each sentence
+    std::string line;
+    while (std::getline(inputFile, line)) {
+      // Parse the TF-IDF vector from the line
+      auto tfIdfVector = parseTfIdfVector(line);
+
+      // Get the sentence (everything after the TF-IDF vector)
+      size_t sentenceStart =
+          line.find('}') +
+          2; // Find the end of the TF-IDF vector and skip the space
+      std::string sentence = line.substr(sentenceStart);
+
+      double similarity = cosineSimilarity(inputTFIDF, tfIdfVector);
+      local_scoreMaps[threadID][similarity] = sentence;
+    }
+    inputFile.close();
+  }
+  /// merge the local score maps in to global
+  for (int i = 0; i < numThreads; ++i) {
+    for (const auto &entry : local_scoreMaps[i]) {
+      scoreMap[entry.first] = entry.second;
+    }
   }
 
-  // Extract the top k indices
-  std::vector<int> topKIndices;
+  // Extract the top k sentences
+  std::vector<std::string> topKSentences;
   int count = 0;
   for (const auto &entry : scoreMap) {
     if (count >= k)
       break;
-    topKIndices.push_back(entry.second);
+    topKSentences.push_back(entry.second);
     ++count;
   }
-  return topKIndices; // Return indices of the top k most similar documents
+  return topKSentences; // Return indices of the top k most similar documents
 }

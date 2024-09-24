@@ -1,41 +1,50 @@
 #include "calculateTFIDF.hpp"
+#include "createTFIDFMapping.hpp"
 
+#include <cstdlib>
+#include <fstream>
 #include <iostream>
 #include <map>
+#include <omp.h>
 #include <string>
 #include <vector>
 
 using namespace std;
 
-// Function to calculate TF for a single document
-// how many times a word appears in a single sentence
-// eg: [{"hello":  0.1 },{"world":  0.2 }]
-std::map<std::string, double> calculateTF(const std::vector<std::string> &doc) {
-  std::map<std::string, int> wordCount;
-  for (const auto &word : doc) {
-    wordCount[word]++;
-  }
-
-  std::map<std::string, double> tf;
-  for (const auto &word : wordCount) {
-    tf[word.first] = (double)word.second / doc.size();
-  }
-  return tf;
-}
-
 // Function to calculate TF-IDF for a document
-std::map<std::string, double>
-calculateTFIDF(const std::vector<std::string> &doc,
-               const std::map<std::string, double> &idf) {
-  std::map<std::string, double> tf = calculateTF(doc);
-  std::map<std::string, double> tfidf;
+void calculateTFIDF(const std::string &test_file_path,
+                    std::map<std::string, double> &idf, int numThreads) {
 
-  for (const auto &word : tf) {
-    auto it = idf.find(word.first);
-    double idfValue = (it != idf.end())
-                          ? it->second
-                          : 0.0; // Default IDF value if word not found
-    tfidf[word.first] = word.second * idfValue;
+  // Open the file to get its size
+  std::fstream inFile(test_file_path, std::ios::in | std::ios::ate);
+  if (!inFile) {
+    std::cout << "Error opening tf-idf file" << std::endl;
+    return;
   }
-  return tfidf;
+  long fileSize = inFile.tellg();
+  inFile.close();
+
+  // Calculate the size of the chunks each thread will handle
+  long chunkSize = fileSize / numThreads;
+
+  // Set the number of threads for OpenMP
+  omp_set_num_threads(numThreads);
+
+  // Remove the old files
+  std::cout << "Removing any old tf-idf chunks........" << std::endl;
+  std::string directoryPath = "document_files/tf-idf-chunks/*.txt";
+  std::string command = "rm -f " + directoryPath;
+  system(command.c_str());
+
+  // Parallelize the file reading using OpenMP
+  std::cout << "Calculating TF-IDF vectors........" << std::endl;
+#pragma omp parallel
+  {
+    int threadID = omp_get_thread_num();
+    long start = threadID * chunkSize;
+    long end =
+        (threadID == numThreads - 1) ? fileSize : (threadID + 1) * chunkSize;
+
+    createTFIDFMapping(test_file_path, idf, start, end);
+  }
 }

@@ -17,10 +17,8 @@ project/
 │ ├── main.cpp
 │ ├── module1/
 │ │ ├── file1.cpp
-│ │ ├── file1.h
 │ └── module2/
 │ ├── file2.cpp
-│ ├── file2.h
 |── include/ #Directory for header files
 ├── build/ # Directory for object files
 └── bin/ # Directory for the final executable

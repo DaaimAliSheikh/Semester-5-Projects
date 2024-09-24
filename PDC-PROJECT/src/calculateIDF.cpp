@@ -1,30 +1,65 @@
-
 #include "calculateIDF.hpp"
+#include "createIDFMapping.hpp"
 #include <cmath>
+#include <fstream>
+#include <iostream>
 #include <map>
-#include <set>
+#include <omp.h>
 #include <string>
 #include <vector>
 
-// Function to calculate IDF for all documents
-// how many sentences does a specific word appear in, irrespective of how
-// many times it appears in a single specfic sentence
 std::map<std::string, double>
-calculateIDF(const std::vector<std::vector<std::string>> &docs) {
-  std::map<std::string, int> docCount;
-  int totalDocs = docs.size();
+mergeMaps(const std::vector<std::map<std::string, double>> &local_idfs) {
+  std::map<std::string, double> mergedMap;
 
-  for (const auto &doc : docs) {
-    // converting single doc(array of words/strings) into a set of words/strings
-    std::set<std::string> uniqueWords(doc.begin(), doc.end());
-    for (const auto &word : uniqueWords) {
-      docCount[word]++;
+  for (const auto &currentMap : local_idfs) {
+    for (const auto &pair : currentMap) {
+      mergedMap[pair.first] +=
+          pair.second; // Add value to existing key or insert new key
     }
   }
 
+  return mergedMap;
+}
+
+std::map<std::string, double> calculateIDF(const std::string &test_file_path,
+                                           int numThreads) {
+  std::cout << "Calculating IDF........" << std::endl;
   std::map<std::string, double> idf;
-  for (const auto &word : docCount) {
-    idf[word.first] = log((double)totalDocs / (1 + word.second));
+
+  // Open the file to get its size
+  std::fstream inFile(test_file_path, std::ios::in | std::ios::ate);
+  if (!inFile) {
+    std::cout << "Error opening file" << std::endl;
+    return idf;
+  }
+  long fileSize = inFile.tellg();
+  inFile.close();
+
+  // Calculate the size of the chunks each thread will handle
+  long chunkSize = fileSize / numThreads;
+
+  // Set the number of threads for OpenMP
+  omp_set_num_threads(numThreads);
+
+  int total_sentence_count = 0;
+  std::vector<std::map<std::string, double>> local_idfs(numThreads);
+
+// Parallelize the file reading using OpenMP
+#pragma omp parallel reduction(+ : total_sentence_count)
+  {
+    int threadID = omp_get_thread_num();
+    long start = threadID * chunkSize;
+    long end =
+        (threadID == numThreads - 1) ? fileSize : (threadID + 1) * chunkSize;
+
+    total_sentence_count +=
+        createIDFMapping(test_file_path, local_idfs[threadID], start, end);
+  }
+  idf = mergeMaps(local_idfs);
+  /// IDF calculation
+  for (const auto &word : idf) {
+    idf[word.first] = log((double)total_sentence_count / (1 + word.second));
     // adding one to prevent overly large IDF values for
     // rare words(for which word.second is 1 or any other low value)
   }

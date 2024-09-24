@@ -4,8 +4,6 @@
 #include <string>
 #include <vector>
 
-
-std::map<std::string, double>
-calculateTFIDF(const std::vector<std::string> &doc,
-               const std::map<std::string, double> &idf);
+void calculateTFIDF(const std::string &test_file_path,
+                    std::map<std::string, double> &idf, int numThreads);
 #endif

@@ -3,7 +3,7 @@
 CXX = g++
 
 # Compiler flags
-CXXFLAGS = -fopenmp 
+CXXFLAGS = -fopenmp -std=c++17 
 
 # Root directory for source files
 SRCDIR = src
