@@ -22,3 +22,8 @@ project/
 |── include/ #Directory for header files
 ├── build/ # Directory for object files
 └── bin/ # Directory for the final executable
+
+document_files contains:
+test.txt
+tf-idf-chunks folder
+idf.bin
