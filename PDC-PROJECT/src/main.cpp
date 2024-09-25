@@ -4,14 +4,11 @@
 #include "loadIDFMap.hpp"
 #include "saveIDFMap.hpp"
 #include "tokenize.hpp"
+#include <chrono>
 #include <filesystem>
-#include <fstream>
-#include <iomanip> // for std::setprecision
 #include <iostream>
 #include <map>
 #include <omp.h>
-#include <regex>
-#include <sstream>
 #include <vector>
 
 namespace fs = std::filesystem;
@@ -22,7 +19,9 @@ int main() {
   std::string test_file_path = "document_files/test.txt";
   std::string idf_file_path = "document_files/idf.bin";
   std::string tfidf_dir = "document_files/tf-idf-chunks";
-  int numThreads = 10;
+  int numThreads = 5;
+  ////5 threads took about 46 seconds
+  ////3 threads took about 60 seconds
 
   std::cout << "1. Generate TF-IDF Embeddings for the the dataset provided in "
                "document_files/test.txt"
@@ -38,6 +37,7 @@ int main() {
     std::getline(std::cin, choice);
 
     if (choice == "1") {
+      auto start = std::chrono::high_resolution_clock::now();
       std::map<std::string, double> idf = calculateIDF(
           test_file_path,
           numThreads); // test_file_path and number of threads to process it
@@ -48,7 +48,13 @@ int main() {
       /// calculate tf-idf chunks
       calculateTFIDF(test_file_path, idf, numThreads);
 
-      std::cout << "Embeddings generated successfully." << std::endl;
+      auto end = std::chrono::high_resolution_clock::now();
+
+      // Calculate the duration in milliseconds
+      std::chrono::duration<double> duration = end - start;
+      std::cout << "Embeddings generated successfully in " << duration.count()
+                << " seconds\n"
+                << std::endl;
       break;
     } else if (choice == "2") {
       if (fs::directory_iterator(tfidf_dir) == fs::directory_iterator{}) {
@@ -75,7 +81,6 @@ int main() {
 
         std::cout << "How many top matching sentences would you like to see?"
                   << std::endl;
-        fflush(stdin);
 
         std::cin >> k;
         if (k <= 0) {
@@ -85,13 +90,22 @@ int main() {
         break;
       }
       std::cout << "Searching........" << std::endl;
+      auto start = std::chrono::high_resolution_clock::now();
+
       std::vector<std::string> topSentences =
           findTopKMostSimilarDocs(question, k, numThreads);
+      auto end = std::chrono::high_resolution_clock::now();
 
       std::cout << "The top " << k
                 << " most similar sentences are:" << std::endl;
       for (int i = 0; i < topSentences.size(); ++i)
         std::cout << i + 1 << ". " << topSentences[i] << std::endl;
+
+      // Calculate the duration in milliseconds
+      std::chrono::duration<double> duration = end - start;
+      std::cout << std::endl;
+      std::cout << "Time taken: " << duration.count() << " seconds\n"
+                << std::endl;
 
       break;
     } else {
@@ -99,28 +113,6 @@ int main() {
       continue;
     }
   }
-
-  /// searching part
-
-  // Calculate TF-IDF for all documents
-  // std::vector<std::map<std::string, double>> docTFIDFs;
-  // for (const auto &doc : documents) {
-  //   docTFIDFs.push_back(calculateTFIDF(doc, idf));
-  // }
-
-  // std::map<std::string, double> inputTFIDF =
-  //     calculateTFIDF(tokenize(question), idf);
-
-  // std::vector<int> topIndices =
-  //     findTopKMostSimilarDocs(inputTFIDF, docTFIDFs, k);
-
-  // std::cout << "size" << topIndices.size() << std::endl;
-  // std::cout << "The top " << k << " most similar sentences are:" <<
-  // std::endl;
-
-  // for (int i = 0; i < topIndices.size(); ++i) {
-  //   std::cout << i + 1 << ". " << sentences[topIndices[i]] << std::endl;
-  // }
 
   return 0;
 }
