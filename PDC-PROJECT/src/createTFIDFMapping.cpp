@@ -1,5 +1,6 @@
 #include "createTFIDFMapping.hpp"
 #include "tokenize.hpp"
+#include <algorithm> // for std::all_of
 #include <fstream>
 #include <iomanip>
 #include <iostream>
@@ -71,6 +72,11 @@ void adjustToSentenceBoundary(std::fstream &inFile, long &start) {
     }
   }
 }
+/// check if string is only whitespace before converting into a tf-idf vector
+bool isOnlyWhitespace2(const std::string &str) {
+  return std::all_of(str.begin(), str.end(),
+                     [](unsigned char c) { return std::isspace(c); });
+}
 
 // Function for reading and processing a part of the file
 void createTFIDFMapping(const std::string &test_file_path,
@@ -105,9 +111,8 @@ void createTFIDFMapping(const std::string &test_file_path,
 
     sentence = trim(sentence);
 
-    // Use OpenMP critical section for accessing the global variable safely
-    if (sentence != "") {
-      // TFIDF mapping here
+    if (sentence != "" && !isOnlyWhitespace2(sentence)) {
+      // Calculate TF-IDF Vector
       std::map<std::string, double> tf = calculateTF(tokenize(sentence));
       std::map<std::string, double> tfidf;
       for (const auto &word : tf) {

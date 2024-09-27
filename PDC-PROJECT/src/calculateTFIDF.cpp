@@ -27,9 +27,6 @@ void calculateTFIDF(const std::string &test_file_path,
   // Calculate the size of the chunks each thread will handle
   long chunkSize = fileSize / numThreads;
 
-  // Set the number of threads for OpenMP
-  omp_set_num_threads(numThreads);
-
   // Remove the old files
   std::cout << "Removing any old tf-idf chunks........" << std::endl;
   std::string directoryPath = "document_files/tf-idf-chunks/*.txt";
@@ -38,7 +35,8 @@ void calculateTFIDF(const std::string &test_file_path,
 
   // Parallelize the file reading using OpenMP
   std::cout << "Calculating TF-IDF vectors........" << std::endl;
-#pragma omp parallel
+
+#pragma omp parallel num_threads(numThreads)
   {
     int threadID = omp_get_thread_num();
     long start = threadID * chunkSize;

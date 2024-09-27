@@ -24,7 +24,7 @@ mergeMaps(const std::vector<std::map<std::string, double>> &local_idfs) {
 
 std::map<std::string, double> calculateIDF(const std::string &test_file_path,
                                            int numThreads) {
-  std::cout << "Calculating IDF........" << std::endl;
+  std::cout << "Calculating IDF vector........" << std::endl;
   std::map<std::string, double> idf;
 
   // Open the file to get its size

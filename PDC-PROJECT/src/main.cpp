@@ -19,9 +19,11 @@ int main() {
   std::string test_file_path = "document_files/test.txt";
   std::string idf_file_path = "document_files/idf.bin";
   std::string tfidf_dir = "document_files/tf-idf-chunks";
-  int numThreads = 5;
+  const int numThreads = 10;
   ////5 threads took about 46 seconds
   ////3 threads took about 60 seconds
+  /// make sure each chunk of the dataset that is divied into numThreads
+  /// contains atleast 1 complete sentence else there will be repeated sentences
 
   std::cout << "1. Generate TF-IDF Embeddings for the the dataset provided in "
                "document_files/test.txt"

@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <omp.h>
 #include <set>
 #include <string>
 #include <vector>
@@ -70,11 +69,8 @@ int createIDFMapping(const std::string &filepath,
       const std::vector<std::string> doc = tokenize(sentence);
       std::set<std::string> uniqueWords(doc.begin(), doc.end());
       for (const auto &word : uniqueWords) {
-#pragma omp critical
-        {
-          // IDF mapping here
-          idf[word]++;
-        }
+        // IDF mapping here
+        idf[word]++;
       }
     }
 
