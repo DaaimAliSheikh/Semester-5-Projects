@@ -21,6 +21,7 @@ FOLDER STRUCTURE
     │ │ ├── file1.cpp
     │ └── module2/
     │ ├── file2.cpp
+    |── document_files/
     |── include/ #Directory for header files
     ├── build/ # Directory for object files
     └── bin/ # Directory for the final executable
