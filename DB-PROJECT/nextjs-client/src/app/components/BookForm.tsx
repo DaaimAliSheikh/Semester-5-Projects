@@ -75,9 +75,15 @@ function BookForm() {
           <Typography variant="h6" gutterBottom>All Books</Typography>
           <List>
             {books.map((book, index) => (
-              <ListItem key={index}>
-                <ListItemText primary={`Title: ${book.Title}`} secondary={`Author: ${book.Author}`} />
+              <>
+              <ListItem key={index} sx={{ flexDirection: 'column', alignItems: 'flex-start' }}>
+              <Typography variant="h5">{`Title: ${book.Title}`}</Typography>
+              <Typography variant="subtitle1">{`Author: ${book.Author}`}</Typography>
+              <Typography variant="subtitle2">{`ISBN_NO: ${book.ISBN_NO}`}</Typography>
               </ListItem>
+              </>
+            
+               
             ))}
           </List>
         </Paper>
