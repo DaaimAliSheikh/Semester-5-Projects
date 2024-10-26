@@ -1,3 +1,4 @@
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v14-appRouter';
 import type { Metadata } from "next";
 import "./globals.css";
 
@@ -17,7 +18,10 @@ export default function RootLayout({
       <body
         className={`antialiased`}
       >
+        <AppRouterCacheProvider>
+
         {children}
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

@@ -3,7 +3,6 @@
 #include "findTopKMostSimilarDocs.hpp"
 #include "loadIDFMap.hpp"
 #include "saveIDFMap.hpp"
-#include "tokenize.hpp"
 #include <chrono>
 #include <filesystem>
 #include <iostream>
@@ -20,7 +19,8 @@ int main() {
   std::string idf_file_path = "document_files/idf.bin";
   std::string tfidf_dir = "document_files/tf-idf-chunks";
   const int numThreads = 5;
-  /// * If you generate embeddings for x threads then the cosine similarity search should also be with x threads
+  /// * If you generate embeddings for x threads then the cosine similarity
+  /// search should also be with x threads
   /// * make sure each chunk of the dataset that is divied into numThreads
   /// contains atleast 1 complete sentence else there will be repeated sentences
 
