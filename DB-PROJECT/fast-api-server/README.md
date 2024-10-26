@@ -1,6 +1,7 @@
 ## SETUP AND RUN THE FASTAPI SERVER:
-  - Run the postgres db locally(preferably in a docker container with port forwarding setup to port `5432`)
-  - Install docker and a run a postgres container:
+  - Setup a virtual env, while inside the `fast-api-server` directory, run `python3 -m venv .venv` or `python3 -m venv .venv`
+  - Activate the virtual env, while inside the `fast-api-server` directory, run `source .venv/bin/activate`
+  - Run the postgres db locally(preferably in a docker container with port forwarding setup to port `5432`). Install docker and a run a postgres container:
     1. `sudo apt update && sudo apt install docker`
     2. `docker pull postgres`
     3. `docker run -d --name my_postgres -e POSTGRES_USER=myuser -e POSTGRES_PASSWORD=mypassword -e POSTGRES_DB=mydatabase -p 5432:5432`
