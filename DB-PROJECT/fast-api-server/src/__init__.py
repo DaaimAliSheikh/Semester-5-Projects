@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from src.db.main import init_db
 from fastapi.middleware.cors import CORSMiddleware
 from src.users.routes import user_router
+from src.books.routes import book_router
 
 
 @asynccontextmanager
@@ -25,6 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(user_router)
+app.include_router(book_router)
 
 
 # SELECT * FROM users
