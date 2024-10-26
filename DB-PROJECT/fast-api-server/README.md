@@ -1,2 +1,4 @@
 - RUN THE APP:
-  - run `uvicorn src.main:app --reload` in the `fast-api-server` directory.
+  - run the postgres db locally(preferably in a docker container with port forwarding setup)
+  - username:postgres, dbname:postgres, password:postgres
+  - run `fastapi dev src` in the `fast-api-server` directory to start the app
