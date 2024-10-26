@@ -19,7 +19,6 @@ class CreateUserModel(BaseModel):
     email: str
     password_hash: str
     profile_picture_url: str
-    is_verified: bool
 
 
 class UpdateUserModel(BaseModel):

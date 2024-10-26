@@ -31,7 +31,8 @@ class User(SQLModel, table=True):
     ), exclude=True)
     is_verified: bool = Field(sa_column=Column(
         pg.BOOLEAN,
-        nullable=False
+        nullable=False,
+        default=False
     ))
     profile_picture_url: str = Field(sa_column=Column(
         pg.VARCHAR(255),
