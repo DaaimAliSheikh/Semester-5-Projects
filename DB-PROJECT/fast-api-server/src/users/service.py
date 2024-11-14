@@ -3,6 +3,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models import User
 from src.users.schemas import CreateUserModel, UpdateUserModel
 from uuid import UUID
+from .utils import generate_passwd_hash
 
 
 class UserService:
@@ -22,6 +23,8 @@ class UserService:
         self, user_data: CreateUserModel,  session: AsyncSession
     ):
         new_user = User(**user_data.model_dump())
+
+        new_user.password_hash = generate_passwd_hash(user_data.password)
         session.add(new_user)
         # transaction, so can perform multiple actions, and commit all at once
         await session.commit()
@@ -34,7 +37,7 @@ class UserService:
         if not old_user:
             return None
         # exclude_unset=True only creates dict of non-None entries
-        
+
         for key, value in user_data.model_dump(exclude_unset=True).items():
             setattr(old_user, key, value)
 

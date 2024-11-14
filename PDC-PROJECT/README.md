@@ -1,13 +1,12 @@
 ### COMMANDS TO RUN when in the same directory as the MakeFile:
 
-    -make //build the project
-    -make run //run the project, or build and run if the project has not been built yet
-    -make clean //delete build and bin folders
+  - run `make` to build the project
+  - run `make run` to run the project, or build and run if the project has not been built yet
+  - run `make clean` to delete build and bin folders
 
-- Add document_files folder in the root folder with a file named text.txt with the target data:
+- Add document_files folder in the root folder with a file named test.txt with the target data:
 
-- document_files folder will contain:
-
+* document_files folder will contain:
   - test.txt
   - tf-idf-chunks folder (auto-generated)
   - idf.bin (auto-generated)

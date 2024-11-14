@@ -28,7 +28,7 @@ class User(SQLModel, table=True):
     password_hash: str = Field(sa_column=Column(
         pg.VARCHAR(255),
         nullable=False
-    ), exclude=True)
+    ))
     is_verified: bool = Field(sa_column=Column(
         pg.BOOLEAN,
         nullable=False,
@@ -36,7 +36,7 @@ class User(SQLModel, table=True):
     ))
     profile_picture_url: str = Field(sa_column=Column(
         pg.VARCHAR(255),
-        nullable=True
+        nullable=True,
     ))
     created_at: datetime = Field(sa_column=Column(
         pg.TIMESTAMP, default=datetime.now))
@@ -45,31 +45,3 @@ class User(SQLModel, table=True):
 
     def __repr__(self):
         return f"<User {self.id}, username: {self.username}>"
-
-
-class Book(SQLModel, table=True):
-    __tablename__: str = "books"  # type: ignore
-
-    ISBN_NO: uuid.UUID = Field(
-        sa_column=Column(
-            pg.UUID,
-            nullable=False,
-            primary_key=True,
-            default=uuid.uuid4
-        )
-    )
-    Title: str = Field(sa_column=Column(
-        pg.VARCHAR(255),
-        nullable=False
-    ))
-    Author: str = Field(sa_column=Column(
-        pg.VARCHAR(255),
-        nullable=False
-    ))
-    created_at: datetime = Field(sa_column=Column(
-        pg.TIMESTAMP, default=datetime.now))
-    updated_at: datetime = Field(sa_column=Column(
-        pg.TIMESTAMP, default=datetime.now, onupdate=datetime.now))
-
-    def __repr__(self):
-        return f"<Book ISBN_NO: {self.ISBN_NO}, Title: {self.Title}, Author: {self.Author}>"
