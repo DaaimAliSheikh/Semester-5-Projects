@@ -4,14 +4,12 @@ import uuid
 
 
 class UserModel(BaseModel):  # this is the response model
-    id: uuid.UUID
+    user_id: str  # str instead of uuid type because uuid is not serializable
     username: str
     email: str
-    password: str = Field(exclude=True)
+    password_hash: str = Field(exclude=True)
     profile_picture_url:  str | None = None
-    is_verified: bool
-    created_at: datetime
-    updated_at: datetime
+    is_admin: bool
 
 
 class CreateUserModel(BaseModel):
@@ -20,14 +18,7 @@ class CreateUserModel(BaseModel):
     password: str
     profile_picture_url:  str | None = None
 
+
 class LoginUserModel(BaseModel):
     email: str
     password: str
-
-
-class UpdateUserModel(BaseModel):
-    username: str | None = None
-    # cannot update email
-    password: str | None = None
-    profile_picture_url: str | None = None
-    is_verified: bool | None = None

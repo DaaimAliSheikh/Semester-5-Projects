@@ -4,7 +4,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 class Settings(BaseSettings):
     DATABASE_URL: str = "default"   # to counter type error below
     JWT_SECRET: str = "default"
-    JWT_ALGORITHM: str = "default"
+    ACCESS_TOKEN_EXPIRY: str="3600"
     # REDIS_URL: str = "redis://localhost:6379/0"
     # MAIL_USERNAME: str
     # MAIL_PASSWORD: str

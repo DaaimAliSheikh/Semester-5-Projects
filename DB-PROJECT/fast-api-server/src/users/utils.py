@@ -1,7 +1,6 @@
 import logging
 import uuid
 from datetime import datetime, timedelta
-# from itsdangerous import URLSafeTimedSerializer
 
 import jwt
 from passlib.context import CryptContext
@@ -9,9 +8,6 @@ from passlib.context import CryptContext
 from src.config import Config
 
 passwd_context = CryptContext(schemes=["bcrypt"])
-
-
-ACCESS_TOKEN_EXPIRY = 3600
 
 
 def generate_passwd_hash(password: str) -> str:
@@ -25,36 +21,16 @@ def verify_password(password: str, hash: str) -> bool:
 
 def create_access_token(
     # we are not implementing refresh tokens
-    user_data: dict, expiry: timedelta = timedelta(seconds=ACCESS_TOKEN_EXPIRY), refresh: bool = False
+    user_id: uuid.UUID
 ):
-    payload = {}
-
-    payload["user"] = user_data
-    payload["exp"] = datetime.now() + expiry
-    payload["jti"] = str(uuid.uuid4())
-
-    payload["refresh"] = refresh
+   
 
     token = jwt.encode(
-        payload=payload, key=Config.JWT_SECRET, algorithm=Config.JWT_ALGORITHM
+        payload={"user_id": user_id, "exp": datetime.now() + timedelta(seconds=float(Config.ACCESS_TOKEN_EXPIRY)), "jti": str(uuid.uuid4())}, key=Config.JWT_SECRET
     )
 
     return token
 
 
-def decode_token(token: str):
-    try:
-        token_data = jwt.decode(
-            jwt=token, key=Config.JWT_SECRET, algorithms=[Config.JWT_ALGORITHM]
-        )
-
-        return token_data
-
-    except jwt.PyJWTError as e:
-        logging.exception(e)
-        return None
 
 
-# serializer = URLSafeTimedSerializer(
-#     secret_key=Config.JWT_SECRET, salt="email-configuration"
-# )

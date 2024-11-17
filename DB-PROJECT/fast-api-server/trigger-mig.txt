@@ -1,0 +1,79 @@
+from alembic import op
+
+
+# revision identifiers, used by Alembic.
+revision = 'your_revision_id'
+down_revision = 'previous_revision_id'
+branch_labels = None
+depends_on = None
+
+
+def upgrade():
+    # Create the trigger function check_and_update_car_quantity
+    op.execute("""
+    CREATE OR REPLACE FUNCTION check_and_update_car_quantity()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        IF (SELECT car_quantity FROM car WHERE car_id = NEW.car_id) > 0 THEN
+            UPDATE car
+            SET car_quantity = car_quantity - 1
+            WHERE car_id = NEW.car_id;
+            RETURN NEW;
+        ELSE
+            RAISE EXCEPTION 'Cannot reserve car: insufficient quantity';
+        END IF;
+    END;
+    $$ LANGUAGE plpgsql;
+    """)
+
+
+    # Create the trigger function check_venue_availability
+    op.execute("""
+    CREATE OR REPLACE FUNCTION check_venue_availability()
+    RETURNS TRIGGER AS $$
+    BEGIN
+        -- Check if the venue is available
+        IF NOT EXISTS (
+            SELECT 1
+            FROM venue
+            WHERE venue.venue_id = NEW.venue_id
+              AND venue.venue_availability_status = TRUE
+        ) THEN
+            RAISE EXCEPTION 'The selected venue is not available';
+        END IF;
+
+        RETURN NEW;
+    END;
+    $$ LANGUAGE plpgsql;
+    """)
+
+
+    # Create the trigger car_reservation_trigger
+    op.execute("""
+    CREATE TRIGGER car_reservation_trigger
+    BEFORE INSERT ON car_reservation
+    FOR EACH ROW
+    EXECUTE FUNCTION check_and_update_car_quantity();
+    """)
+
+    # Create the Trigger enforce_venue_availability
+    op.execute("""
+    CREATE TRIGGER enforce_venue_availability
+    BEFORE INSERT OR UPDATE ON booking
+    FOR EACH ROW
+    EXECUTE FUNCTION check_venue_availability();
+    """)
+
+
+def downgrade():
+    # Drop the car_reservation_trigger trigger first
+    op.execute("DROP TRIGGER IF EXISTS car_reservation_trigger ON car_reservation;")
+
+    # Drop the check_and_update_car_quantity function
+    op.execute("DROP FUNCTION IF EXISTS check_and_update_car_quantity;")
+
+    # Drop the enforce_venue_availability trigger first
+    op.execute("DROP TRIGGER IF EXISTS enforce_venue_availability ON booking")
+
+    # Drop the check_venue_availability function
+    op.execute("DROP FUNCTION IF EXISTS check_venue_availability")
