@@ -1,8 +1,8 @@
-"""initial_models
+"""all models complete
 
-Revision ID: bcd4aeedb5ec
+Revision ID: 3e758b818736
 Revises: 
-Create Date: 2024-11-17 15:29:46.916857
+Create Date: 2024-11-20 00:57:54.547889
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = 'bcd4aeedb5ec'
+revision: str = '3e758b818736'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -55,13 +55,6 @@ def upgrade() -> None:
     sa.Column('dish_cost_per_serving', sa.INTEGER(), nullable=False),
     sa.PrimaryKeyConstraint('dish_id')
     )
-    op.create_table('payment',
-    sa.Column('payment_id', sa.UUID(), nullable=False),
-    sa.Column('payment_amount', sa.INTEGER(), nullable=False),
-    sa.Column('payment_date', postgresql.TIMESTAMP(), nullable=False),
-    sa.Column('payment_method', sa.Enum('debit_card', 'credit_card', 'easypaisa', 'jazzcash', 'other', name='paymentmethod'), nullable=False),
-    sa.PrimaryKeyConstraint('payment_id')
-    )
     op.create_table('promo',
     sa.Column('promo_id', sa.UUID(), nullable=False),
     sa.Column('promo_name', sa.VARCHAR(length=255), nullable=False),
@@ -97,16 +90,14 @@ def upgrade() -> None:
     sa.Column('booking_discount', sa.FLOAT(), nullable=True),
     sa.Column('booking_status', sa.Enum('pending', 'confirmed', 'declined', name='bookingstatus'), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
-    sa.Column('payment_id', sa.UUID(), nullable=False),
     sa.Column('venue_id', sa.UUID(), nullable=False),
     sa.Column('catering_id', sa.UUID(), nullable=True),
     sa.Column('decoration_id', sa.UUID(), nullable=True),
     sa.Column('promo_id', sa.UUID(), nullable=True),
-    sa.ForeignKeyConstraint(['catering_id'], ['catering.catering_id'], ),
-    sa.ForeignKeyConstraint(['decoration_id'], ['decoration.decoration_id'], ),
-    sa.ForeignKeyConstraint(['payment_id'], ['payment.payment_id'], ),
-    sa.ForeignKeyConstraint(['promo_id'], ['promo.promo_id'], ),
-    sa.ForeignKeyConstraint(['user_id'], ['user.user_id'], ),
+    sa.ForeignKeyConstraint(['catering_id'], ['catering.catering_id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['decoration_id'], ['decoration.decoration_id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['promo_id'], ['promo.promo_id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['user_id'], ['user.user_id'], ondelete='CASCADE'),
     sa.ForeignKeyConstraint(['venue_id'], ['venue.venue_id'], ),
     sa.PrimaryKeyConstraint('booking_id'),
     sa.UniqueConstraint('venue_id', 'booking_event_date', name='unique_car_make_model')
@@ -115,13 +106,13 @@ def upgrade() -> None:
     sa.Column('catering_id', sa.UUID(), nullable=False),
     sa.Column('dish_id', sa.UUID(), nullable=False),
     sa.ForeignKeyConstraint(['catering_id'], ['catering.catering_id'], ),
-    sa.ForeignKeyConstraint(['dish_id'], ['dish.dish_id'], ),
+    sa.ForeignKeyConstraint(['dish_id'], ['dish.dish_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('catering_id', 'dish_id')
     )
     op.create_table('user_contact',
     sa.Column('user_contact_number', sa.VARCHAR(length=15), nullable=False),
     sa.Column('user_id', sa.UUID(), nullable=False),
-    sa.ForeignKeyConstraint(['user_id'], ['user.user_id'], ),
+    sa.ForeignKeyConstraint(['user_id'], ['user.user_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('user_contact_number', 'user_id')
     )
     op.create_table('venue_review',
@@ -129,49 +120,32 @@ def upgrade() -> None:
     sa.Column('venue_review_text', sa.VARCHAR(length=1000), nullable=False),
     sa.Column('venue_review_created_at', postgresql.TIMESTAMP(), nullable=False),
     sa.Column('venue_id', sa.UUID(), nullable=False),
-    sa.ForeignKeyConstraint(['venue_id'], ['venue.venue_id'], ),
+    sa.ForeignKeyConstraint(['venue_id'], ['venue.venue_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('venue_review_id')
     )
     op.create_table('car_reservation',
     sa.Column('car_reservation_id', sa.UUID(), nullable=False),
     sa.Column('car_id', sa.UUID(), nullable=False),
     sa.Column('booking_id', sa.UUID(), nullable=False),
-    sa.ForeignKeyConstraint(['booking_id'], ['booking.booking_id'], ),
-    sa.ForeignKeyConstraint(['car_id'], ['car.car_id'], ),
+    sa.ForeignKeyConstraint(['booking_id'], ['booking.booking_id'], ondelete='CASCADE'),
+    sa.ForeignKeyConstraint(['car_id'], ['car.car_id'], ondelete='CASCADE'),
     sa.PrimaryKeyConstraint('car_reservation_id')
     )
-   
-  # Triggers
-    # Create the trigger function check_and_update_car_quantity
-    op.execute("""
-    CREATE OR REPLACE FUNCTION check_and_update_car_quantity()
-    RETURNS TRIGGER AS $$
-    BEGIN
-        IF (SELECT car_quantity FROM car WHERE car_id = NEW.car_id) > 0 THEN
-            UPDATE car
-            SET car_quantity = car_quantity - 1
-            WHERE car_id = NEW.car_id;
-            RETURN NEW;
-        ELSE
-            RAISE EXCEPTION 'Cannot reserve car: insufficient quantity';
-        END IF;
-    END;
-    $$ LANGUAGE plpgsql;
-    """)
-
-    # Create the trigger car_reservation_trigger
-    op.execute("""
-    CREATE TRIGGER car_reservation_trigger
-    BEFORE INSERT ON car_reservation
-    FOR EACH ROW
-    EXECUTE FUNCTION check_and_update_car_quantity();
-    """)
-
+    op.create_table('payment',
+    sa.Column('payment_id', sa.UUID(), nullable=False),
+    sa.Column('payment_amount', sa.INTEGER(), nullable=False),
+    sa.Column('payment_date', postgresql.TIMESTAMP(), nullable=False),
+    sa.Column('payment_method', sa.Enum('debit_card', 'credit_card', 'easypaisa', 'jazzcash', 'other', name='paymentmethod'), nullable=False),
+    sa.Column('booking_id', sa.UUID(), nullable=False),
+    sa.ForeignKeyConstraint(['booking_id'], ['booking.booking_id'], ondelete='CASCADE'),
+    sa.PrimaryKeyConstraint('payment_id')
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table('payment')
     op.drop_table('car_reservation')
     op.drop_table('venue_review')
     op.drop_table('user_contact')
@@ -180,17 +154,8 @@ def downgrade() -> None:
     op.drop_table('venue')
     op.drop_table('user')
     op.drop_table('promo')
-    op.drop_table('payment')
     op.drop_table('dish')
     op.drop_table('decoration')
     op.drop_table('catering')
     op.drop_table('car')
-     # downgrading triggers
-    # Drop the car_reservation_trigger trigger first
-    op.execute(
-        "DROP TRIGGER IF EXISTS car_reservation_trigger ON car_reservation;")
-
-    # Drop the check_and_update_car_quantity function
-    op.execute("DROP FUNCTION IF EXISTS check_and_update_car_quantity;")
-
     # ### end Alembic commands ###

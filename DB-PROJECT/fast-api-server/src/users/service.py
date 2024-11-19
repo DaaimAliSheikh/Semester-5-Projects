@@ -8,7 +8,6 @@ from .utils import generate_passwd_hash
 
 class UserService:
 
-
     async def get_user(self, user_id: UUID, session: AsyncSession):
         s = select(User).where(User.user_id == user_id)
         result = await session.exec(s)
@@ -18,7 +17,7 @@ class UserService:
     async def create_user(
         self, user_data: CreateUserModel,  session: AsyncSession
     ):
-        
+
         new_user = User(**user_data.model_dump())
 
         new_user.password_hash = generate_passwd_hash(user_data.password)
@@ -26,7 +25,6 @@ class UserService:
         # transaction, so can perform multiple actions, and commit all at once
         await session.commit()
         return new_user
-        
 
     async def get_user_by_email(self, email: str, session: AsyncSession):
         statement = select(User).where(User.email == email)
@@ -35,9 +33,7 @@ class UserService:
 
         user = result.first()
 
-        return user
-    
-
+        return user if user else None
 
     # async def get_all_users(self, session: AsyncSession):
     #     s = select(User).order_by(desc(User.created_at))

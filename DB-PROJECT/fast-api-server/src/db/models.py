@@ -5,6 +5,7 @@ import sqlalchemy.dialects.postgresql as pg
 import uuid
 from sqlalchemy import Enum as PgEnum, ForeignKey, CheckConstraint, UniqueConstraint
 
+
 # Enums
 
 
@@ -61,11 +62,15 @@ class User(SQLModel, table=True):
     ))
 
     # one-many relationship with user_contact
-    user_contacts: list["UserContact"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    user_contacts: list["UserContact"] = Relationship(back_populates="user", sa_relationship_kwargs={
+                                                      "cascade": "all, delete-orphan", "lazy": "selectin"})
 
     # one-many relationship with booking
     bookings: list["Booking"] = Relationship(
-        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
+    # "cascade": "all, delete-orphan" is to delete/modify/add child entities when parent entity's 'child referencing property' is deleted/modified/add
+    # eg: catering.catering_menu_items[0].dish = Dish(...)
+    # eg: catering.catering_menu_items[0].pop(0)
 
 
 class UserContact(SQLModel, table=True):
@@ -78,6 +83,7 @@ class UserContact(SQLModel, table=True):
     # one-many relationship with user
     user_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
         "user.user_id", ondelete="CASCADE"), nullable=False, primary_key=True))
+    # ondelete="CASCADE", if user gets deleted, then user_contact also gets deleted
     user: "User" = Relationship(back_populates="user_contacts")
 
 
@@ -106,8 +112,7 @@ class Venue(SQLModel, table=True):
 
     # one-many relationship with venue_review
     venue_reviews: list["VenueReview"] = Relationship(
-        back_populates="venue", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
-    # sa_relationship_kwargs are here to delete/modify child entities when parent entity is deleted/modified on the application level
+        back_populates="venue", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
     # in list["Type"], Type should be class name not table name(VenueReview, not venue_review)
 
     # one-many relationship with booking
@@ -183,7 +188,7 @@ class Decoration(SQLModel, table=True):
 
     # one-many relationship with booking
     bookings: list["Booking"] = Relationship(
-        back_populates="decoration", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+        back_populates="decoration", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
 
 class Car(SQLModel, table=True):
@@ -210,7 +215,7 @@ class Car(SQLModel, table=True):
 
     # one-many relationship with car_reservation
     car_reservations: list["CarReservation"] = Relationship(
-        back_populates="car", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+        back_populates="car", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
 # Car reservation table = many to many relation b/w car and booking
 
@@ -247,11 +252,12 @@ class Catering(SQLModel, table=True):
         sa_column=Column(pg.VARCHAR(255), nullable=True))
 
     # one-many relationship with booking
-    bookings: list["Booking"] = Relationship(back_populates="catering", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    bookings: list["Booking"] = Relationship(back_populates="catering", sa_relationship_kwargs={
+                                             "cascade": "all, delete-orphan", "lazy": "selectin"})
 
     # one-many relationship with CateringMenuItem
     catering_menu_items: list["CateringMenuItem"] = Relationship(
-        back_populates="catering", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+        back_populates="catering", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
 
 class Dish(SQLModel, table=True):
@@ -276,7 +282,7 @@ class Dish(SQLModel, table=True):
 
     # one-many relationship with dishes
     catering_menu_items: list["CateringMenuItem"] = Relationship(
-        back_populates="dish", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+        back_populates="dish", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
 
 # Catering Menu Item = many to many realtion b/w catering and dish
@@ -285,7 +291,7 @@ class CateringMenuItem(SQLModel, table=True):
     # catering_id and booking_id are composite primary keys
     # one-many relationship with car
     catering_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
-        "catering.catering_id",ondelete="CASCADE"), nullable=False, primary_key=True))
+        "catering.catering_id"), nullable=False, primary_key=True))
     catering: "Catering" = Relationship(back_populates="catering_menu_items")
     # one-many relationship with booking
     dish_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
@@ -309,7 +315,8 @@ class Promo(SQLModel, table=True):
         "promo_discount > 0"), nullable=False))
 
     # one-many relationship with booking
-    bookings: list["Booking"] = Relationship(back_populates="promo", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    bookings: list["Booking"] = Relationship(back_populates="promo", sa_relationship_kwargs={
+                                             "cascade": "all, delete-orphan", "lazy": "selectin"})
 
 
 class Booking(SQLModel, table=True):
@@ -343,7 +350,8 @@ class Booking(SQLModel, table=True):
 
     # one-many relationship with user
     user_id: uuid.UUID = Field(
-        sa_column=Column(pg.UUID, ForeignKey("user.user_id", ondelete="CASCADE"), nullable=False)
+        sa_column=Column(pg.UUID, ForeignKey(
+            "user.user_id", ondelete="CASCADE"), nullable=False)
     )
     user: "User" = Relationship(back_populates="bookings")
 
@@ -373,7 +381,7 @@ class Booking(SQLModel, table=True):
 
     # one-many relationship with car_reservation(OPTIONAL)
     car_reservations: list["CarReservation"] = Relationship(
-        back_populates="booking", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+        back_populates="booking", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
     # one-many relationship with promo(OPTIONAL)
     promo_id: uuid.UUID = Field(

@@ -6,9 +6,7 @@ from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 
-
 from alembic import context
-from src.db.models import User, UserContact, Catering, Dish, CateringMenuItem, Booking, CarReservation, Car, Venue, VenueReview, Payment, Decoration, Promo  # type: ignore #include all models
 from sqlmodel import SQLModel
 from src.config import Config
 

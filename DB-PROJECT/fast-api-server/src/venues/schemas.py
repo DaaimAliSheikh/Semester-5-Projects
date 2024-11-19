@@ -1,22 +1,32 @@
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 import uuid
+from datetime import datetime
 
 
-class VenueModel(BaseModel):  # this is the response model
-    user_id: uuid.UUID  
-    username: str
-    email: str
-    password_hash: str = Field(exclude=True)
-    is_admin: bool
-
- 
-
-class CreateUserModel(BaseModel):
-    username: str
-    email: str
-    password: str
+class VenueReviewModel(BaseModel):
+    venue_review_id: uuid.UUID
+    venue_review_text: str
+    venue_review_created_at: datetime
 
 
-class LoginUserModel(BaseModel):
-    email: str
-    password: str
+class CreateVenueReviewModel(BaseModel):
+    review_text: str
+
+
+class VenueModel(BaseModel):
+    venue_id: uuid.UUID
+    venue_name: str
+    venue_address: str
+    venue_capacity: int
+    venue_price_per_day: int
+    venue_rating: float
+    venue_image: str | None
+    venue_reviews: list[VenueReviewModel]
+
+
+class CreateVenueModel(BaseModel):
+    venue_name: str
+    venue_address: str
+    venue_capacity: int
+    venue_price_per_day: int
+    venue_image: str | None

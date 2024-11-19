@@ -13,28 +13,23 @@ user_service = UserService()
 
 
 # response_model TRUNCATES USER TO ONLY THE PROPERTIES IN UserModel
-@user_router.get("/protected", response_model=UserModel, status_code=status.HTTP_200_OK)
-async def get_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
-    return user
-
+# @user_router.get("/protected", response_model=UserModel, status_code=status.HTTP_200_OK)
+# async def get_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
+#     return user
 
 
 @user_router.post("/signup", response_model=UserModel, status_code=status.HTTP_201_CREATED)
 async def create_user(response: Response, user_data: CreateUserModel, session: AsyncSession = Depends(get_session)):
-
     if not await user_service.get_user_by_email(user_data.email, session):
         user = await user_service.create_user(user_data, session)
-        if user:
-            response.set_cookie(
-                key="access_token",
-                value=create_access_token(user.user_id),
-                httponly=True,  # Secure the cookie from JavaScript access
-                max_age=int(Config.ACCESS_TOKEN_EXPIRY),
-                samesite="lax"
-            )
-            return user
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="User could not be created")
+        response.set_cookie(
+            key="access_token",
+            value=create_access_token(user.user_id),
+            httponly=True,  # Secure the cookie from JavaScript access
+            max_age=int(Config.ACCESS_TOKEN_EXPIRY),
+            samesite="lax"
+        )
+        return user
 
     raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                         detail=f"User with email {user_data.email} already exists")
@@ -55,6 +50,13 @@ async def login_user(response: Response, user_data: LoginUserModel, session: Asy
 
     raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                         detail=f"User does not exist")
+
+
+@user_router.post("/logout",  response_model=UserModel,   status_code=status.HTTP_200_OK)
+async def logout_user(response: Response, user: UserModel = Depends(JWTAuthMiddleware)):
+    response.delete_cookie(key="access_token")
+    return {"detail": "Successfully logged out"}
+
 
 # response_model TRUNCATES USER TO ONLY THE PROPERTIES IN UserModel
 # @user_router.get("/{user_id}", response_model=UserModel, status_code=status.HTTP_200_OK)

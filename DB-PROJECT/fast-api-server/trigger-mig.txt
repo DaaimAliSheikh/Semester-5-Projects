@@ -1,4 +1,4 @@
-
+ 
   # Triggers
     # Create the trigger function check_and_update_car_quantity
     op.execute("""
@@ -29,13 +29,66 @@
 
 
 
-
- # downgrading triggers
-    # Drop the car_reservation_trigger trigger first
+     # Drop the car_reservation_trigger trigger first
     op.execute(
         "DROP TRIGGER IF EXISTS car_reservation_trigger ON car_reservation;")
 
     # Drop the check_and_update_car_quantity function
     op.execute("DROP FUNCTION IF EXISTS check_and_update_car_quantity;")
 
-    # ### end Alembic commands ###
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    pls sql queries
+
+    drop all Tables, Enums, triggers and check_and_update_car_quantity function
+DO $$ 
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT table_name FROM information_schema.tables WHERE table_schema = 'public') LOOP
+        EXECUTE 'DROP TABLE IF EXISTS public.' || r.table_name || ' CASCADE';
+    END LOOP;
+END $$;
+
+
+DO $$ 
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT n.nspname, t.typname 
+              FROM pg_type t
+              JOIN pg_catalog.pg_namespace n ON n.oid = t.typnamespace
+              WHERE t.typtype = 'e' AND n.nspname != 'pg_catalog' AND n.nspname != 'information_schema') LOOP
+        EXECUTE 'DROP TYPE IF EXISTS ' || r.nspname || '.' || r.typname || ' CASCADE';
+    END LOOP;
+END $$;
+
+
+DO $$ 
+DECLARE
+    r RECORD;
+BEGIN
+    FOR r IN (SELECT tgname, tgrelid::regclass
+              FROM pg_trigger
+              WHERE NOT tgisinternal) LOOP
+        EXECUTE 'DROP TRIGGER IF EXISTS ' || r.tgname || ' ON ' || r.tgrelid;
+    END LOOP;
+
+END $$;
+
+
+DROP FUNCTION IF EXISTS check_and_update_car_quantity() CASCADE;
