@@ -1,4 +1,3 @@
-import logging
 import uuid
 from datetime import datetime, timedelta
 
@@ -23,14 +22,9 @@ def create_access_token(
     # we are not implementing refresh tokens
     user_id: uuid.UUID
 ):
-   
 
     token = jwt.encode(
-        payload={"user_id": user_id, "exp": datetime.now() + timedelta(seconds=float(Config.ACCESS_TOKEN_EXPIRY)), "jti": str(uuid.uuid4())}, key=Config.JWT_SECRET
+        payload={"user_id": str(user_id), "exp": datetime.now() + timedelta(seconds=float(Config.ACCESS_TOKEN_EXPIRY)), "jti": str(uuid.uuid4())}, key=Config.JWT_SECRET
     )
 
     return token
-
-
-
-

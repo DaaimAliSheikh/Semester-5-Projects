@@ -1,4 +1,4 @@
-from sqlmodel import desc, select
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models import User
 from src.users.schemas import CreateUserModel
@@ -18,6 +18,7 @@ class UserService:
     async def create_user(
         self, user_data: CreateUserModel,  session: AsyncSession
     ):
+        
         new_user = User(**user_data.model_dump())
 
         new_user.password_hash = generate_passwd_hash(user_data.password)
@@ -25,6 +26,7 @@ class UserService:
         # transaction, so can perform multiple actions, and commit all at once
         await session.commit()
         return new_user
+        
 
     async def get_user_by_email(self, email: str, session: AsyncSession):
         statement = select(User).where(User.email == email)

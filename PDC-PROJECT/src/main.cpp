@@ -18,7 +18,7 @@ int main() {
   std::string test_file_path = "document_files/test.txt";
   std::string idf_file_path = "document_files/idf.bin";
   std::string tfidf_dir = "document_files/tf-idf-chunks";
-  const int numThreads = 5;
+  const int numThreads = 1;
   /// * If you generate embeddings for x threads then the cosine similarity
   /// search should also be with x threads
   /// * make sure each chunk of the dataset that is divied into numThreads

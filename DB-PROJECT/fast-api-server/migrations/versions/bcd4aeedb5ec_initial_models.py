@@ -1,8 +1,8 @@
-"""initial migration
+"""initial_models
 
-Revision ID: 1e61702eb0ac
+Revision ID: bcd4aeedb5ec
 Revises: 
-Create Date: 2024-11-16 17:27:14.486091
+Create Date: 2024-11-17 15:29:46.916857
 
 """
 from typing import Sequence, Union
@@ -13,7 +13,7 @@ import sqlmodel
 from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
-revision: str = '1e61702eb0ac'
+revision: str = 'bcd4aeedb5ec'
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -42,7 +42,7 @@ def upgrade() -> None:
     sa.Column('decoration_id', sa.UUID(), nullable=False),
     sa.Column('decoration_name', sa.VARCHAR(length=255), nullable=False),
     sa.Column('decoration_price', sa.INTEGER(), nullable=False),
-    sa.Column('decoration_type', sa.VARCHAR(length=255), nullable=False),
+    sa.Column('decoration_description', sa.VARCHAR(length=255), nullable=False),
     sa.Column('decoration_image', sa.VARCHAR(length=255), nullable=True),
     sa.PrimaryKeyConstraint('decoration_id')
     )
@@ -84,7 +84,6 @@ def upgrade() -> None:
     sa.Column('venue_address', sa.VARCHAR(length=255), nullable=False),
     sa.Column('venue_capacity', sa.INTEGER(), nullable=False),
     sa.Column('venue_price_per_day', sa.INTEGER(), nullable=False),
-    sa.Column('venue_availability_status', sa.BOOLEAN(), nullable=False),
     sa.Column('venue_rating', sa.FLOAT(), nullable=False),
     sa.Column('venue_image', sa.VARCHAR(length=255), nullable=True),
     sa.PrimaryKeyConstraint('venue_id')
@@ -141,10 +140,8 @@ def upgrade() -> None:
     sa.ForeignKeyConstraint(['car_id'], ['car.car_id'], ),
     sa.PrimaryKeyConstraint('car_reservation_id')
     )
-
-
-
-    #Triggers
+   
+  # Triggers
     # Create the trigger function check_and_update_car_quantity
     op.execute("""
     CREATE OR REPLACE FUNCTION check_and_update_car_quantity()
@@ -162,42 +159,12 @@ def upgrade() -> None:
     $$ LANGUAGE plpgsql;
     """)
 
-
-    # Create the trigger function check_venue_availability
-    op.execute("""
-    CREATE OR REPLACE FUNCTION check_venue_availability()
-    RETURNS TRIGGER AS $$
-    BEGIN
-        -- Check if the venue is available
-        IF NOT EXISTS (
-            SELECT 1
-            FROM venue
-            WHERE venue.venue_id = NEW.venue_id
-              AND venue.venue_availability_status = TRUE
-        ) THEN
-            RAISE EXCEPTION 'The selected venue is not available';
-        END IF;
-
-        RETURN NEW;
-    END;
-    $$ LANGUAGE plpgsql;
-    """)
-
-
     # Create the trigger car_reservation_trigger
     op.execute("""
     CREATE TRIGGER car_reservation_trigger
     BEFORE INSERT ON car_reservation
     FOR EACH ROW
     EXECUTE FUNCTION check_and_update_car_quantity();
-    """)
-
-    # Create the Trigger enforce_venue_availability
-    op.execute("""
-    CREATE TRIGGER enforce_venue_availability
-    BEFORE INSERT OR UPDATE ON booking
-    FOR EACH ROW
-    EXECUTE FUNCTION check_venue_availability();
     """)
 
     # ### end Alembic commands ###
@@ -218,20 +185,12 @@ def downgrade() -> None:
     op.drop_table('decoration')
     op.drop_table('catering')
     op.drop_table('car')
-
-
-    # downgrading triggers
+     # downgrading triggers
     # Drop the car_reservation_trigger trigger first
-    op.execute("DROP TRIGGER IF EXISTS car_reservation_trigger ON car_reservation;")
+    op.execute(
+        "DROP TRIGGER IF EXISTS car_reservation_trigger ON car_reservation;")
 
     # Drop the check_and_update_car_quantity function
     op.execute("DROP FUNCTION IF EXISTS check_and_update_car_quantity;")
 
-    # Drop the enforce_venue_availability trigger first
-    op.execute("DROP TRIGGER IF EXISTS enforce_venue_availability ON booking")
-
-    # Drop the check_venue_availability function
-    op.execute("DROP FUNCTION IF EXISTS check_venue_availability")
-
     # ### end Alembic commands ###
-

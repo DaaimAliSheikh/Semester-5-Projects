@@ -1,11 +1,15 @@
 from fastapi import Depends, HTTPException, status, Cookie
 import jwt
 
-class Config:
-    JWT_SECRET = "your_secret_key"
-    JWT_ALGORITHM = "HS256"
+from src.config import Config
+from src.db.main import get_session
+from src.users.service import UserService
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-def JWTAuthMiddleware(access_token: str = Cookie(None)):
+user_service = UserService()
+
+
+async def JWTAuthMiddleware(access_token: str = Cookie(None),session: AsyncSession = Depends(get_session)):
     if not access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -14,10 +18,11 @@ def JWTAuthMiddleware(access_token: str = Cookie(None)):
 
     try:
         # Decode and verify the JWT token
-        payload = jwt.decode(access_token, Config.JWT_SECRET, algorithms=[Config.JWT_ALGORITHM])
-        return payload  # Return user_id data from token
-    except jwt.PyJWTError:
+        payload = jwt.decode(access_token, Config.JWT_SECRET,algorithms=[Config.JWT_ALGORITHM]) #necessary to pass algo here
+        return await user_service.get_user(payload.get("user_id"), session)
+        
+    except jwt.PyJWTError as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
+            detail=f"Invalid or expired token: {e}",
         )

@@ -7,6 +7,7 @@ from sqlalchemy import Enum as PgEnum, ForeignKey, CheckConstraint, UniqueConstr
 
 # Enums
 
+
 class BookingStatus(str, Enum):
     pending = "pending"
     confirmed = "confirmed"
@@ -60,10 +61,11 @@ class User(SQLModel, table=True):
     ))
 
     # one-many relationship with user_contact
-    user_contacts: list["UserContact"] = Relationship(back_populates="user")
+    user_contacts: list["UserContact"] = Relationship(back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
     # one-many relationship with booking
-    bookings: list["Booking"] = Relationship(back_populates="user")
+    bookings: list["Booking"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 
 class UserContact(SQLModel, table=True):
@@ -75,7 +77,7 @@ class UserContact(SQLModel, table=True):
     )
     # one-many relationship with user
     user_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
-        "user.user_id"), nullable=False, primary_key=True))
+        "user.user_id", ondelete="CASCADE"), nullable=False, primary_key=True))
     user: "User" = Relationship(back_populates="user_contacts")
 
 
@@ -96,15 +98,16 @@ class Venue(SQLModel, table=True):
 
     venue_price_per_day: int = Field(
         sa_column=Column(pg.INTEGER, nullable=False))
-    venue_availability_status: bool = Field(
-        sa_column=Column(pg.BOOLEAN, nullable=False, default=True))
+
     # check constraint for venue_rating
     venue_rating: int = Field(sa_column=Column(pg.FLOAT, CheckConstraint(
         "venue_rating >= 1"), nullable=False, default=0))
     venue_image: str = Field(sa_column=Column(pg.VARCHAR(255), nullable=True))
 
     # one-many relationship with venue_review
-    venue_reviews: list["VenueReview"] = Relationship(back_populates="venue")
+    venue_reviews: list["VenueReview"] = Relationship(
+        back_populates="venue", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
+    # sa_relationship_kwargs are here to delete/modify child entities when parent entity is deleted/modified on the application level
     # in list["Type"], Type should be class name not table name(VenueReview, not venue_review)
 
     # one-many relationship with booking
@@ -127,7 +130,8 @@ class VenueReview(SQLModel, table=True):
 
     # one-many relationship with venue
     venue_id: uuid.UUID = Field(
-        sa_column=Column(pg.UUID, ForeignKey("venue.venue_id"), nullable=False)
+        sa_column=Column(pg.UUID, ForeignKey(
+            "venue.venue_id", ondelete="CASCADE"), nullable=False)
     )
     venue: "Venue" = Relationship(back_populates="venue_reviews")
 
@@ -150,8 +154,13 @@ class Payment(SQLModel, table=True):
         sa_column=Column(PgEnum(PaymentMethod), nullable=False,
                          default=PaymentMethod.debit_card)
     )
-
     # one-one relationship with booking
+
+    booking_id: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, ForeignKey(
+            "booking.booking_id", ondelete="CASCADE"), nullable=False)
+    )
+
     booking: "Booking" = Relationship(back_populates="payment")
 
 
@@ -167,13 +176,14 @@ class Decoration(SQLModel, table=True):
     # check constraint for decoration_price
     decoration_price: int = Field(sa_column=Column(pg.INTEGER,  CheckConstraint(
         "decoration_price >= 0"), nullable=False))
-    decoration_type: str = Field(
+    decoration_description: str = Field(
         sa_column=Column(pg.VARCHAR(255), nullable=False))
     decoration_image: str = Field(
         sa_column=Column(pg.VARCHAR(255), nullable=True))
 
     # one-many relationship with booking
-    bookings: list["Booking"] = Relationship(back_populates="decoration")
+    bookings: list["Booking"] = Relationship(
+        back_populates="decoration", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 
 class Car(SQLModel, table=True):
@@ -200,7 +210,7 @@ class Car(SQLModel, table=True):
 
     # one-many relationship with car_reservation
     car_reservations: list["CarReservation"] = Relationship(
-        back_populates="car")
+        back_populates="car", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 # Car reservation table = many to many relation b/w car and booking
 
@@ -214,11 +224,11 @@ class CarReservation(SQLModel, table=True):
     )
     # one-many relationship with car
     car_id: uuid.UUID = Field(sa_column=Column(
-        pg.UUID, ForeignKey("car.car_id"), nullable=False))
+        pg.UUID, ForeignKey("car.car_id", ondelete="CASCADE"), nullable=False))
     car: "Car" = Relationship(back_populates="car_reservations")
     # one-many relationship with booking
     booking_id: uuid.UUID = Field(sa_column=Column(
-        pg.UUID, ForeignKey("booking.booking_id"), nullable=False))
+        pg.UUID, ForeignKey("booking.booking_id", ondelete="CASCADE"), nullable=False))
     booking: "Booking" = Relationship(back_populates="car_reservations")
 
 
@@ -237,11 +247,11 @@ class Catering(SQLModel, table=True):
         sa_column=Column(pg.VARCHAR(255), nullable=True))
 
     # one-many relationship with booking
-    bookings: list["Booking"] = Relationship(back_populates="catering")
+    bookings: list["Booking"] = Relationship(back_populates="catering", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
     # one-many relationship with CateringMenuItem
     catering_menu_items: list["CateringMenuItem"] = Relationship(
-        back_populates="catering")
+        back_populates="catering", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 
 class Dish(SQLModel, table=True):
@@ -266,7 +276,7 @@ class Dish(SQLModel, table=True):
 
     # one-many relationship with dishes
     catering_menu_items: list["CateringMenuItem"] = Relationship(
-        back_populates="dish")
+        back_populates="dish", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 
 # Catering Menu Item = many to many realtion b/w catering and dish
@@ -275,11 +285,11 @@ class CateringMenuItem(SQLModel, table=True):
     # catering_id and booking_id are composite primary keys
     # one-many relationship with car
     catering_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
-        "catering.catering_id"), nullable=False, primary_key=True))
+        "catering.catering_id",ondelete="CASCADE"), nullable=False, primary_key=True))
     catering: "Catering" = Relationship(back_populates="catering_menu_items")
     # one-many relationship with booking
     dish_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
-        "dish.dish_id"), nullable=False, primary_key=True))
+        "dish.dish_id", ondelete="CASCADE"), nullable=False, primary_key=True))
     dish: "Dish" = Relationship(back_populates="catering_menu_items")
 
 
@@ -299,7 +309,7 @@ class Promo(SQLModel, table=True):
         "promo_discount > 0"), nullable=False))
 
     # one-many relationship with booking
-    bookings: list["Booking"] = Relationship(back_populates="promo")
+    bookings: list["Booking"] = Relationship(back_populates="promo", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
 
 class Booking(SQLModel, table=True):
@@ -333,16 +343,13 @@ class Booking(SQLModel, table=True):
 
     # one-many relationship with user
     user_id: uuid.UUID = Field(
-        sa_column=Column(pg.UUID, ForeignKey("user.user_id"), nullable=False)
+        sa_column=Column(pg.UUID, ForeignKey("user.user_id", ondelete="CASCADE"), nullable=False)
     )
     user: "User" = Relationship(back_populates="bookings")
 
     # one-one relationship with payment
-    payment_id: uuid.UUID = Field(
-        sa_column=Column(pg.UUID, ForeignKey(
-            "payment.payment_id"), nullable=False)
-    )
-    payment: "Payment" = Relationship(back_populates="booking")
+    payment: "Payment" = Relationship(back_populates="booking", sa_relationship_kwargs={
+                                      "cascade": "all, delete-orphan"})
 
     # one-many relationship with venue
     venue_id: uuid.UUID = Field(
@@ -353,25 +360,25 @@ class Booking(SQLModel, table=True):
     # one-many relationship with catering(OPTIONAL)
     catering_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey(
-            "catering.catering_id"), nullable=True)
+            "catering.catering_id", ondelete="CASCADE"), nullable=True)
     )
     catering: "Catering" = Relationship(back_populates="bookings")
 
     # one-many relationship with Decoration(OPTIONAL)
     decoration_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey(
-            "decoration.decoration_id"), nullable=True)
+            "decoration.decoration_id", ondelete="CASCADE"), nullable=True)
     )
     decoration: "Decoration" = Relationship(back_populates="bookings")
 
     # one-many relationship with car_reservation(OPTIONAL)
     car_reservations: list["CarReservation"] = Relationship(
-        back_populates="booking")
+        back_populates="booking", sa_relationship_kwargs={"cascade": "all, delete-orphan"})
 
     # one-many relationship with promo(OPTIONAL)
     promo_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey(
-            "promo.promo_id"), nullable=True)
+            "promo.promo_id", ondelete="CASCADE"), nullable=True)
     )
     promo: "Promo" = Relationship(back_populates="bookings")
     # unique constraint for venue and booking_event_date

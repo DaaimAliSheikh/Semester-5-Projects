@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 import uuid
 
 
-class UserModel(BaseModel):  # this is the response model
+class VenueModel(BaseModel):  # this is the response model
     user_id: uuid.UUID  
     username: str
     email: str
