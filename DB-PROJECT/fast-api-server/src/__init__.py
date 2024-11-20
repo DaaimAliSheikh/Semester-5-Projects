@@ -1,12 +1,15 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request
+from pathlib import Path
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import JSONResponse
 from src.db.main import init_db
 from fastapi.middleware.cors import CORSMiddleware
 from src.users.routes import user_router
 from src.caterings.routes import catering_router
 from src.venues.routes import venue_router
+from src.decorations.routes import decoration_router
 import logging
+from fastapi.responses import FileResponse
 
 
 @asynccontextmanager
@@ -28,13 +31,28 @@ app.add_middleware(
     allow_headers=["*"],  # Allows all headers
 )
 
+
 app.include_router(user_router)
 app.include_router(catering_router)
 app.include_router(venue_router)
+app.include_router(decoration_router)
+
+
+# Serve images from the "images" directory
+
+
+@app.get("/images/{image_name}", response_class=FileResponse)
+async def serve_image(image_name: str):
+    file_path = Path("images") / image_name
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="Image not found")
+    return FileResponse(file_path)
+
+# Global exception handler
 
 
 @app.exception_handler(Exception)
-async def global_exception_handler(request:Request,exc: Exception):
+async def global_exception_handler(request: Request, exc: Exception):
     logging.error(f"Unhandled exception: {exc}")
     return JSONResponse(
         status_code=500,

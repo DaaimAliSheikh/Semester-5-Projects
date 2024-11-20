@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from src.users.schemas import UserModel
@@ -6,14 +6,16 @@ from src.venues.service import VenueService
 from src.venues.schemas import VenueModel, CreateVenueModel, VenueReviewModel, CreateVenueReviewModel
 from uuid import UUID
 from src.users.JWTAuthMiddleware import JWTAuthMiddleware
+from src.utils import upload_image
+from src.config import Config
 
 venue_router = APIRouter(prefix="/venues")
 venue_service = VenueService()
 
 
 @venue_router.get("/", response_model=list[VenueModel], status_code=status.HTTP_200_OK)
-async def get_all_venues( session: AsyncSession = Depends(get_session)):
-    venues = await venue_service.get_all_venues( session)
+async def get_all_venues(session: AsyncSession = Depends(get_session)):
+    venues = await venue_service.get_all_venues(session)
     return venues
 
 
@@ -50,18 +52,52 @@ async def create_review(
     return venue_review
 
 
+@venue_router.delete("/{venue_review_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_venue_review(
+    venue_review_id: UUID,
+    user: UserModel = Depends(JWTAuthMiddleware),
+    session: AsyncSession = Depends(get_session),
+):
+    if user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin cannot delete reviews")
+    deleted = await venue_service.delete_review(venue_review_id, session)
+    if not deleted:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Venue review not found")
+    return deleted
+
+
 @venue_router.post("/", response_model=VenueModel, status_code=status.HTTP_201_CREATED)
 async def create_venue(
-    venue_data: CreateVenueModel,
-    # This will give us the user details
+    venue_name: str = Form(...),
+    venue_address: str = Form(...),
+    venue_capacity: int = Form(...),
+    venue_price_per_day: int = Form(...),
+    venue_image: UploadFile = File(...),  # Handle image file upload
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
     if not user.is_admin:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
+
+    # Upload the image and get the file path
+    image_name = await upload_image(venue_image)
+    # Create new decoration
+    venue_data = CreateVenueModel(
+        venue_name=venue_name,
+        venue_address=venue_address,
+        venue_capacity=venue_capacity,
+        venue_price_per_day=venue_price_per_day,
+        venue_image=f"{Config.SERVER_BASE_URL}images/{image_name}",
+    )
     venue = await venue_service.create_venue(venue_data, session)
     return venue
+
+
+
 
 
 @venue_router.delete("/{venue_id}", status_code=status.HTTP_204_NO_CONTENT)

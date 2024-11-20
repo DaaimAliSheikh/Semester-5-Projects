@@ -4,6 +4,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models import Catering, Dish, CateringMenuItem, DishType
 from src.caterings.schemas import CreateCateringModel, CreateDishModel
 from uuid import UUID
+from src.utils import delete_image
 
 
 class CateringService:
@@ -44,6 +45,7 @@ class CateringService:
     async def delete_catering(self, catering_id: UUID, session: AsyncSession):
         catering = await self.get_catering(catering_id, session)
         if catering:
+            await delete_image(catering.catering_image)
             await session.delete(catering)
             await session.commit()
             return catering
@@ -80,4 +82,15 @@ class CateringService:
             session.add(catering_menu_item)
             await session.commit()
             return catering_menu_item
+        return None
+
+    async def remove_dish_from_catering(self, catering_id: UUID, dish_id: UUID, session: AsyncSession):
+        query = select(CateringMenuItem).where(
+            CateringMenuItem.catering_id == catering_id, CateringMenuItem.dish_id == dish_id)
+        result = await session.exec(query)
+        menu_item = result.first()
+        if menu_item:
+            await session.delete(menu_item)
+            await session.commit()
+            return menu_item
         return None

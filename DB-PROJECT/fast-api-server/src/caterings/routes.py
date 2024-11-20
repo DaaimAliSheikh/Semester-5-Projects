@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from pyparsing import C
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from uuid import UUID
@@ -6,6 +7,8 @@ from src.caterings.service import CateringService
 from src.caterings.schemas import CateringModel, CreateCateringModel, DishModel, CreateDishModel
 from src.users.JWTAuthMiddleware import JWTAuthMiddleware
 from src.users.schemas import UserModel
+from src.utils import upload_image
+from src.config import Config
 
 catering_router = APIRouter(prefix="/caterings")
 catering_service = CateringService()
@@ -20,10 +23,26 @@ async def get_all_caterings(session: AsyncSession = Depends(get_session)):
 
 # Add a new catering
 @catering_router.post("/", response_model=CateringModel, status_code=status.HTTP_201_CREATED)
-async def create_catering(catering_data: CreateCateringModel, user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
-    if (not user.is_admin):
+async def create_venue(
+    catering_name: str = Form(...),
+    catering_description: str = Form(...),
+    catering_image: UploadFile = File(...),  # Handle image file upload
+    user: UserModel = Depends(JWTAuthMiddleware),
+    session: AsyncSession = Depends(get_session),
+):
+    if not user.is_admin:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
+
+    # Upload the image and get the file path
+    image_name = await upload_image(catering_image)
+    # Create new decoration
+    catering_data = CreateCateringModel(
+        catering_name=catering_name,
+        catering_description=catering_description,
+        catering_image=f"{Config.SERVER_BASE_URL}images/{image_name}",
+    )
     catering = await catering_service.create_catering(catering_data, session)
     return catering
 
@@ -74,4 +93,17 @@ async def add_dish_to_catering(catering_id: UUID,  dish_id: UUID, user: UserMode
     if not catering_menu_item:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Catering or Dish not found")
+    return catering_menu_item
+
+
+# Remove a dish to a catering
+@catering_router.delete("/{catering_id}/dishes/{dish_id}",  status_code=status.HTTP_204_NO_CONTENT)
+async def remove_dish_to_catering(catering_id: UUID,  dish_id: UUID, user: UserModel = Depends(JWTAuthMiddleware),  session: AsyncSession = Depends(get_session)):
+    if (not user.is_admin):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+    catering_menu_item = await catering_service.remove_dish_from_catering(catering_id, dish_id, session)
+    if not catering_menu_item:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Catering Menu Item not found")
     return catering_menu_item

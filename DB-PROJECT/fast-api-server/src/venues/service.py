@@ -3,6 +3,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models import Venue, VenueReview
 from src.venues.schemas import CreateVenueModel, CreateVenueReviewModel
 from uuid import UUID
+from src.utils import delete_image
 
 
 class VenueService:
@@ -10,7 +11,6 @@ class VenueService:
         query = select(Venue)
         result = await session.exec(query)
         venues = result.all()
-        raise Exception("lol")
         return venues
 
     async def get_venue(self, venue_id: UUID, session: AsyncSession):
@@ -32,6 +32,7 @@ class VenueService:
         venue = results.first()
         if not venue:
             return None
+        await delete_image(venue.venue_image)
         await session.delete(venue)
         await session.commit()
         return venue
@@ -42,7 +43,7 @@ class VenueService:
             return venue.venue_reviews
         return None
 
-    async def create_review(self, venue_id: UUID, venue_review_data: CreateVenueReviewModel, session: AsyncSession) -> VenueReview:
+    async def create_review(self, venue_id: UUID, venue_review_data: CreateVenueReviewModel, session: AsyncSession):
         # Create a new venue review
         new_review = VenueReview(
             **venue_review_data.model_dump(), venue_id=venue_id)
@@ -53,3 +54,15 @@ class VenueService:
         await session.refresh(new_review)
 
         return new_review
+
+    async def delete_review(self, venue_review_id: UUID, session: AsyncSession):
+
+        query = select(VenueReview).where(
+            VenueReview.venue_review_id == venue_review_id)
+        results = await session.exec(query)
+        venue_review = results.first()
+        if not venue_review:
+            return None
+        await session.delete(venue_review)
+        await session.commit()
+        return venue_review
