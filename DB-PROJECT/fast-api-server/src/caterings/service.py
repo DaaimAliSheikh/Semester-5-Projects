@@ -61,6 +61,7 @@ class CateringService:
     async def delete_dish(self, dish_id: UUID, session: AsyncSession):
         dish = await self.get_dish(dish_id, session)
         if dish:
+            await delete_image(dish.dish_image)
             await session.delete(dish)
             await session.commit()
             return dish

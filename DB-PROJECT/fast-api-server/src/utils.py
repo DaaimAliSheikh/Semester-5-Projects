@@ -5,8 +5,10 @@ import shutil
 from pathlib import Path
 
 
-async def upload_image(image_file: UploadFile, upload_dir: str = "images"):
+async def upload_image(image_file: UploadFile | None, upload_dir: str = "images"):
     # Restrict allowed file types
+    if image_file is None:
+        return None
     allowed_types = {"image/jpeg", "image/webp", "image/png", "image/gif"}
     if image_file.content_type not in allowed_types:
         raise HTTPException(

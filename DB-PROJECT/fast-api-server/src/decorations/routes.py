@@ -39,7 +39,8 @@ async def create_decoration(
     decoration_name: str = Form(...),
     decoration_price: int = Form(...),
     decoration_description: str = Form(...),
-    decoration_image: UploadFile = File(...),  # Handle image file upload
+    # Handle image file upload
+    decoration_image: UploadFile | None = File(None),
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
@@ -55,7 +56,8 @@ async def create_decoration(
         decoration_name=decoration_name,
         decoration_price=decoration_price,
         decoration_description=decoration_description,
-        decoration_image=f"{Config.SERVER_BASE_URL}images/{image_name}",
+        decoration_image=None if not image_name else f"{Config.SERVER_BASE_URL}images/{image_name}",
+
     )
     decoration = await decoration_service.create_decoration(decoration_data, session)
     return decoration

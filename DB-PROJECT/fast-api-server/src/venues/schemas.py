@@ -5,6 +5,8 @@ from datetime import datetime
 
 class VenueReviewModel(BaseModel):
     venue_review_id: uuid.UUID
+    venue_id: uuid.UUID
+    user_id: uuid.UUID
     venue_review_text: str
     venue_review_created_at: datetime
 

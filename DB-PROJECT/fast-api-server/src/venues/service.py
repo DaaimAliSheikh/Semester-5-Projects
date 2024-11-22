@@ -43,10 +43,10 @@ class VenueService:
             return venue.venue_reviews
         return None
 
-    async def create_review(self, venue_id: UUID, venue_review_data: CreateVenueReviewModel, session: AsyncSession):
+    async def create_review(self, venue_id: UUID, user_id: UUID, venue_review_data: CreateVenueReviewModel, session: AsyncSession):
         # Create a new venue review
         new_review = VenueReview(
-            **venue_review_data.model_dump(), venue_id=venue_id)
+            **venue_review_data.model_dump(), venue_id=venue_id, user_id=user_id)
         # Add the review to the session and commit the transaction
         session.add(new_review)
         await session.commit()

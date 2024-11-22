@@ -48,7 +48,7 @@ async def create_review(
     if user.is_admin:  # only users can submit reviews
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN, detail="Admins cannot submit reviews")
-    venue_review = await venue_service.create_review(venue_id, venue_review_data, session)
+    venue_review = await venue_service.create_review(venue_id, user.user_id, venue_review_data, session)
     return venue_review
 
 
@@ -74,7 +74,7 @@ async def create_venue(
     venue_address: str = Form(...),
     venue_capacity: int = Form(...),
     venue_price_per_day: int = Form(...),
-    venue_image: UploadFile = File(...),  # Handle image file upload
+    venue_image: UploadFile | None = File(None),  # Handle image file upload
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
@@ -91,13 +91,11 @@ async def create_venue(
         venue_address=venue_address,
         venue_capacity=venue_capacity,
         venue_price_per_day=venue_price_per_day,
-        venue_image=f"{Config.SERVER_BASE_URL}images/{image_name}",
+        venue_image=None if not image_name else f"{Config.SERVER_BASE_URL}images/{image_name}",
+
     )
     venue = await venue_service.create_venue(venue_data, session)
     return venue
-
-
-
 
 
 @venue_router.delete("/{venue_id}", status_code=status.HTTP_204_NO_CONTENT)

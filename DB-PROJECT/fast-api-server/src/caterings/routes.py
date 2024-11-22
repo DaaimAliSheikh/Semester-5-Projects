@@ -9,6 +9,7 @@ from src.users.JWTAuthMiddleware import JWTAuthMiddleware
 from src.users.schemas import UserModel
 from src.utils import upload_image
 from src.config import Config
+from src.db.models import DishType
 
 catering_router = APIRouter(prefix="/caterings")
 catering_service = CateringService()
@@ -26,7 +27,7 @@ async def get_all_caterings(session: AsyncSession = Depends(get_session)):
 async def create_venue(
     catering_name: str = Form(...),
     catering_description: str = Form(...),
-    catering_image: UploadFile = File(...),  # Handle image file upload
+    catering_image: UploadFile | None = File(...),  # Handle image file upload
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
@@ -41,7 +42,7 @@ async def create_venue(
     catering_data = CreateCateringModel(
         catering_name=catering_name,
         catering_description=catering_description,
-        catering_image=f"{Config.SERVER_BASE_URL}images/{image_name}",
+        catering_image=None if not image_name else f"{Config.SERVER_BASE_URL}images/{image_name}",
     )
     catering = await catering_service.create_catering(catering_data, session)
     return catering
@@ -62,10 +63,31 @@ async def delete_catering(catering_id: UUID, user: UserModel = Depends(JWTAuthMi
 
 # Add a new dish
 @catering_router.post("/dishes", response_model=DishModel, status_code=status.HTTP_201_CREATED)
-async def create_dish(dish_data: CreateDishModel, user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
-    if (not user.is_admin):
+async def create_dish(dish_name: str = Form(...),
+                      dish_description: str = Form(...),
+                      dish_cost_per_serving: int = Form(...),
+                      dish_type: DishType = Form(
+                          DishType.main),  # defaulted to main
+
+                      # Handle image file upload
+                      dish_image: UploadFile | None = File(None),
+                      user: UserModel = Depends(JWTAuthMiddleware),
+                      session: AsyncSession = Depends(get_session),):
+    if not user.is_admin:
         raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required")
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
+
+    # Upload the image and get the file path
+    image_name = await upload_image(dish_image)
+    # Create new decoration
+    dish_data = CreateDishModel(
+        dish_name=dish_name,
+        dish_description=dish_description,
+        dish_cost_per_serving=dish_cost_per_serving,
+        dish_type=dish_type,
+        dish_image=None if not image_name else f"{Config.SERVER_BASE_URL}images/{image_name}",
+    )
     dish = await catering_service.create_dish(dish_data, session)
     return dish
 

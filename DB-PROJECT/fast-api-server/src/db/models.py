@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Optional
 from sqlmodel import SQLModel, Field, Column, Relationship  # type: ignore
 from datetime import datetime
 import sqlalchemy.dialects.postgresql as pg
@@ -64,6 +65,9 @@ class User(SQLModel, table=True):
     # one-many relationship with user_contact
     user_contacts: list["UserContact"] = Relationship(back_populates="user", sa_relationship_kwargs={
                                                       "cascade": "all, delete-orphan", "lazy": "selectin"})
+    # one-many relationship with venue_review
+    venue_reviews: list["VenueReview"] = Relationship(
+        back_populates="user", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
     # one-many relationship with booking
     bookings: list["Booking"] = Relationship(
@@ -139,6 +143,12 @@ class VenueReview(SQLModel, table=True):
             "venue.venue_id", ondelete="CASCADE"), nullable=False)
     )
     venue: "Venue" = Relationship(back_populates="venue_reviews")
+    # one-many relationship with users
+    user_id: uuid.UUID = Field(
+        sa_column=Column(pg.UUID, ForeignKey(
+            "user.user_id", ondelete="CASCADE"), nullable=False)
+    )
+    user: "User" = Relationship(back_populates="venue_reviews")
 
 
 class Payment(SQLModel, table=True):
@@ -348,18 +358,18 @@ class Booking(SQLModel, table=True):
                          default=BookingStatus.pending)
     )
 
-    # one-many relationship with user
+    # one-many relationship with user(COMPULSORY)
     user_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey(
             "user.user_id", ondelete="CASCADE"), nullable=False)
     )
     user: "User" = Relationship(back_populates="bookings")
 
-    # one-one relationship with payment
+    # one-one relationship with payment(COMPULSORY)
     payment: "Payment" = Relationship(back_populates="booking", sa_relationship_kwargs={
-                                      "cascade": "all, delete-orphan"})
+        "cascade": "all, delete-orphan"})
 
-    # one-many relationship with venue
+    # one-many relationship with venue(COMPULSORY)
     venue_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey("venue.venue_id"), nullable=False)
     )

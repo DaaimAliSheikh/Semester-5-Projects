@@ -8,6 +8,8 @@ from src.users.routes import user_router
 from src.caterings.routes import catering_router
 from src.venues.routes import venue_router
 from src.decorations.routes import decoration_router
+from src.promos.routes import promo_router
+from src.cars.routes import car_router
 import logging
 from fastapi.responses import FileResponse
 
@@ -36,6 +38,8 @@ app.include_router(user_router)
 app.include_router(catering_router)
 app.include_router(venue_router)
 app.include_router(decoration_router)
+app.include_router(promo_router)
+app.include_router(car_router)
 
 
 # Serve images from the "images" directory
