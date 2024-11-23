@@ -1,10 +1,9 @@
-from dis import disco
 from enum import Enum
 from sqlmodel import SQLModel, Field, Column, Relationship  # type: ignore
 from datetime import datetime
 import sqlalchemy.dialects.postgresql as pg
 import uuid
-from sqlalchemy import Enum as PgEnum, ForeignKey, CheckConstraint, UniqueConstraint
+from sqlalchemy import Enum as PgEnum, ForeignKey, CheckConstraint, UniqueConstraint,  text
 
 
 # Enums
@@ -180,9 +179,9 @@ class Payment(SQLModel, table=True):
     # check constraint for amount_payed
     # check constraint for total_amount
     __table_args__ = tuple([CheckConstraint(
-        "amount_payed >= 0", name="check_amount_payed"), CheckConstraint(
-        "total_amount >= 0", name="check_total_amount"), CheckConstraint(
-        "discount >= 0", name="check_discount")])
+        "amount_payed >= 0", name="check_payment_amount_payed"), CheckConstraint(
+        "total_amount >= 0", name="check_payment_total_amount"), CheckConstraint(
+        "discount >= 0", name="check_payment_discount")])
 
 
 class Decoration(SQLModel, table=True):
@@ -413,5 +412,9 @@ class Booking(SQLModel, table=True):
     # check constraint for booking_guest_count, there must be atleast 1 guest
     # check constraint for booking_total_cost
     # check constraint for booking_discount
-    __table_args__ = tuple([UniqueConstraint("venue_id", "booking_event_date", name="unique_car_make_model"), CheckConstraint("booking_date > CURRENT_TIMESTAMP", name="check_booking_date"), CheckConstraint("booking_event_date > CURRENT_TIMESTAMP",
-                           name="check_booking_event_date"), CheckConstraint("booking_guest_count > 0", name="check_booking_guest_count")])
+    __table_args__ = tuple([UniqueConstraint(
+        "venue_id",
+        "booking_event_date",
+        name="unique_venue_reservation_day"
+    ), CheckConstraint("booking_date > CURRENT_TIMESTAMP", name="check_booking_date"), CheckConstraint("booking_event_date > CURRENT_TIMESTAMP",
+                                                                                                       name="check_booking_event_date"), CheckConstraint("booking_guest_count > 0", name="check_booking_guest_count")])
