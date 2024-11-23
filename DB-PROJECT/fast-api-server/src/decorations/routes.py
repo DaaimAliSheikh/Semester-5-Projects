@@ -30,8 +30,6 @@ async def get_decoration(decoration_id: UUID, session: AsyncSession = Depends(ge
                         detail="Decoration not found")
 
 
-decoration_router = APIRouter(prefix="/decorations")
-decoration_service = DecorationService()
 
 
 @decoration_router.post("/", response_model=DecorationModel, status_code=status.HTTP_201_CREATED)

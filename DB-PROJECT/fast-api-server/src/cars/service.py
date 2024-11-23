@@ -23,6 +23,8 @@ class CarService:
         new_car = Car(**car_data.model_dump())
         session.add(new_car)
         await session.commit()
+        await session.refresh(new_car)
+
         return new_car
 
     async def delete_car(self, car_id: UUID, session: AsyncSession):
@@ -53,6 +55,7 @@ class CarService:
                 car_id=car_id, booking_id=booking_id, car_reservation_id=uuid4())
             session.add(new_car_reservation)
             await session.commit()
+            await session.refresh(new_car_reservation)
             return new_car_reservation
         return None
 

@@ -28,7 +28,7 @@ async def get_venue(venue_id: UUID, session: AsyncSession = Depends(get_session)
                         detail="Venue not found")
 
 
-@venue_router.get("/{venue_id}/reviews", response_model=list[VenueReviewModel], status_code=status.HTTP_200_OK)
+@venue_router.get("/reviews/{venue_id}", response_model=list[VenueReviewModel], status_code=status.HTTP_200_OK)
 async def get_venue_reviews(venue_id: UUID, session: AsyncSession = Depends(get_session)):
     reviews = await venue_service.get_venue_reviews(venue_id, session)
     if reviews is not None:
@@ -37,7 +37,7 @@ async def get_venue_reviews(venue_id: UUID, session: AsyncSession = Depends(get_
                         detail="Venue not found")
 
 
-@venue_router.post("/{venue_id}/reviews", status_code=status.HTTP_201_CREATED)
+@venue_router.post("/reviews/{venue_id}", status_code=status.HTTP_201_CREATED)
 async def create_review(
     venue_id: UUID,
     venue_review_data: CreateVenueReviewModel,
@@ -52,7 +52,7 @@ async def create_review(
     return venue_review
 
 
-@venue_router.delete("/{venue_review_id}", status_code=status.HTTP_204_NO_CONTENT)
+@venue_router.delete("/reviews/{venue_review_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_venue_review(
     venue_review_id: UUID,
     user: UserModel = Depends(JWTAuthMiddleware),

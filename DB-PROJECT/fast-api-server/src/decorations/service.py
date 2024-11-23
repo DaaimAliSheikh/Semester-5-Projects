@@ -25,6 +25,7 @@ class DecorationService:
         new_decoration = Decoration(**decoration_data.model_dump())
         session.add(new_decoration)
         await session.commit()
+        await session.refresh(new_decoration)
         return new_decoration
 
     async def delete_decoration(self, decoration_id: UUID, session: AsyncSession):

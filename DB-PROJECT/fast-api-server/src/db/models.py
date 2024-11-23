@@ -1,5 +1,5 @@
+from dis import disco
 from enum import Enum
-from typing import Optional
 from sqlmodel import SQLModel, Field, Column, Relationship  # type: ignore
 from datetime import datetime
 import sqlalchemy.dialects.postgresql as pg
@@ -102,16 +102,11 @@ class Venue(SQLModel, table=True):
     venue_address: str = Field(
         sa_column=Column(pg.VARCHAR(255), nullable=False))
 
-    # check constraint for venue_capacity
-    venue_capacity: int = Field(sa_column=Column(pg.INTEGER, CheckConstraint(
-        "venue_capacity >= 0"), nullable=False))
+    venue_capacity: int = Field(sa_column=Column(pg.INTEGER, nullable=False))
 
     venue_price_per_day: int = Field(
         sa_column=Column(pg.INTEGER, nullable=False))
 
-    # check constraint for venue_rating
-    venue_rating: int = Field(sa_column=Column(pg.FLOAT, CheckConstraint(
-        "venue_rating >= 1"), nullable=False, default=0))
     venue_image: str = Field(sa_column=Column(pg.VARCHAR(255), nullable=True))
 
     # one-many relationship with venue_review
@@ -121,6 +116,11 @@ class Venue(SQLModel, table=True):
 
     # one-many relationship with booking
     bookings: list["Booking"] = Relationship(back_populates="venue")
+
+    # check constraint for venue_rating
+    # check constraint for venue_capacity
+    __table_args__ = tuple([
+                           CheckConstraint("venue_capacity > 0", name="check_venue_capacity")])
 
 
 class VenueReview(SQLModel, table=True):
@@ -136,7 +136,8 @@ class VenueReview(SQLModel, table=True):
     venue_review_created_at: datetime = Field(
         sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
-
+    venue_rating: int = Field(sa_column=Column(
+        pg.FLOAT,  nullable=False, default=0))
     # one-many relationship with venue
     venue_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey(
@@ -149,6 +150,8 @@ class VenueReview(SQLModel, table=True):
             "user.user_id", ondelete="CASCADE"), nullable=False)
     )
     user: "User" = Relationship(back_populates="venue_reviews")
+    __table_args__ = tuple(
+        [CheckConstraint("venue_rating >= 1", name="check_venue_rating")])
 
 
 class Payment(SQLModel, table=True):
@@ -158,12 +161,9 @@ class Payment(SQLModel, table=True):
         sa_column=Column(pg.UUID, primary_key=True,
                          nullable=False, default=uuid.uuid4)
     )
-    # check constraint for payment_amount
-    payment_amount: int = Field(sa_column=Column(pg.INTEGER,  CheckConstraint(
-        "payment_amount >= 0"), nullable=False))
-    payment_date: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
-    )
+    amount_payed: int = Field(sa_column=Column(pg.INTEGER,   nullable=False))
+    discount: float = Field(sa_column=Column(pg.FLOAT, nullable=False))
+    total_amount: int = Field(sa_column=Column(pg.INTEGER, nullable=False))
 
     payment_method: PaymentMethod = Field(
         sa_column=Column(PgEnum(PaymentMethod), nullable=False,
@@ -177,6 +177,12 @@ class Payment(SQLModel, table=True):
     )
 
     booking: "Booking" = Relationship(back_populates="payment")
+    # check constraint for amount_payed
+    # check constraint for total_amount
+    __table_args__ = tuple([CheckConstraint(
+        "amount_payed >= 0", name="check_amount_payed"), CheckConstraint(
+        "total_amount >= 0", name="check_total_amount"), CheckConstraint(
+        "discount >= 0", name="check_discount")])
 
 
 class Decoration(SQLModel, table=True):
@@ -188,9 +194,8 @@ class Decoration(SQLModel, table=True):
     )
     decoration_name: str = Field(
         sa_column=Column(pg.VARCHAR(255), nullable=False))
-    # check constraint for decoration_price
-    decoration_price: int = Field(sa_column=Column(pg.INTEGER,  CheckConstraint(
-        "decoration_price >= 0"), nullable=False))
+    decoration_price: int = Field(
+        sa_column=Column(pg.INTEGER,   nullable=False))
     decoration_description: str = Field(
         sa_column=Column(pg.VARCHAR(255), nullable=False))
     decoration_image: str = Field(
@@ -199,6 +204,10 @@ class Decoration(SQLModel, table=True):
     # one-many relationship with booking
     bookings: list["Booking"] = Relationship(
         back_populates="decoration", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
+
+    # check constraint for decoration_price
+    __table_args__ = tuple([CheckConstraint(
+        "decoration_price >= 0", name="check_decoration_price")])
 
 
 class Car(SQLModel, table=True):
@@ -210,23 +219,22 @@ class Car(SQLModel, table=True):
     )
     car_make: str = Field(sa_column=Column(pg.VARCHAR(255), nullable=False))
     car_model: str = Field(sa_column=Column(pg.VARCHAR(255), nullable=False))
-    # check constraint for car_year
-    car_year: int = Field(sa_column=Column(pg.INTEGER,  CheckConstraint(
-        f"car_year BETWEEN 1886 AND {datetime.now().year + 1}",
-        name="check_car_year_valid"
-    ), nullable=False))
-    # check constraint for car_rental_price
-    car_rental_price: int = Field(sa_column=Column(pg.INTEGER, CheckConstraint(
-        "car_rental_price >= 0"), nullable=False))
+    car_year: int = Field(sa_column=Column(pg.INTEGER,
+                                           nullable=False))
+    car_rental_price: int = Field(
+        sa_column=Column(pg.INTEGER,  nullable=False))
     car_image: str = Field(sa_column=Column(pg.VARCHAR(255), nullable=True))
-    # check constraint for car_quantity
-    car_quantity: int = Field(sa_column=Column(pg.INTEGER, CheckConstraint(
-        "car_quantity >= 0"), nullable=False))
+    car_quantity: int = Field(sa_column=Column(pg.INTEGER, nullable=False))
 
     # one-many relationship with car_reservation
     car_reservations: list["CarReservation"] = Relationship(
         back_populates="car", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
+    # check constraint for car_rental_price
+    # check constraint for car_quantity
+    # check constraint for car_year
+    __table_args__ = tuple([CheckConstraint("car_rental_price >= 0", name="check_car_rental_price"), CheckConstraint(
+        "car_quantity >= 0", name="check_car_quantity"), CheckConstraint(f"car_year BETWEEN 1886 AND EXTRACT(YEAR FROM CURRENT_DATE) + 1", name="check_car_year_valid")])
 # Car reservation table = many to many relation b/w car and booking
 
 
@@ -263,7 +271,7 @@ class Catering(SQLModel, table=True):
 
     # one-many relationship with booking
     bookings: list["Booking"] = Relationship(back_populates="catering", sa_relationship_kwargs={
-                                             "cascade": "all, delete-orphan", "lazy": "selectin"})
+        "cascade": "all, delete-orphan", "lazy": "selectin"})
 
     # one-many relationship with CateringMenuItem
     catering_menu_items: list["CateringMenuItem"] = Relationship(
@@ -285,14 +293,16 @@ class Dish(SQLModel, table=True):
                          default=DishType.main)
     )
     dish_image: str = Field(sa_column=Column(pg.VARCHAR(255), nullable=True))
-    # check constraint for dish_cost_per_serving
     dish_cost_per_serving: int = Field(
-        sa_column=Column(pg.INTEGER, CheckConstraint(
-            "dish_cost_per_serving >= 0"), nullable=False))
+        sa_column=Column(pg.INTEGER,  nullable=False))
 
     # one-many relationship with dishes
     catering_menu_items: list["CateringMenuItem"] = Relationship(
         back_populates="dish", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
+
+    # check constraint for dish_cost_per_serving
+    __table_args__ = tuple([CheckConstraint(
+        "dish_cost_per_serving >= 0", name="check_dish_cost_per_serving")])
 
 
 # Catering Menu Item = many to many realtion b/w catering and dish
@@ -301,7 +311,7 @@ class CateringMenuItem(SQLModel, table=True):
     # catering_id and booking_id are composite primary keys
     # one-many relationship with car
     catering_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
-        "catering.catering_id"), nullable=False, primary_key=True))
+        "catering.catering_id", ondelete="CASCADE"), nullable=False, primary_key=True))
     catering: "Catering" = Relationship(back_populates="catering_menu_items")
     # one-many relationship with booking
     dish_id: uuid.UUID = Field(sa_column=Column(pg.UUID, ForeignKey(
@@ -318,15 +328,19 @@ class Promo(SQLModel, table=True):
     )
     promo_name: str = Field(sa_column=Column(pg.VARCHAR(255), nullable=False))
     promo_expiry: datetime = Field(
-        sa_column=Column(pg.TIMESTAMP, nullable=False))
+        sa_column=Column(pg.TIMESTAMP,  nullable=False))
 
     # check constraint for promo_discount
-    promo_discount: float = Field(sa_column=Column(pg.FLOAT, CheckConstraint(
-        "promo_discount > 0"), nullable=False))
+    promo_discount: float = Field(sa_column=Column(pg.FLOAT,  nullable=False))
 
     # one-many relationship with booking
     bookings: list["Booking"] = Relationship(back_populates="promo", sa_relationship_kwargs={
-                                             "cascade": "all, delete-orphan", "lazy": "selectin"})
+        "cascade": "all, delete-orphan", "lazy": "selectin"})
+
+    # Adding the constraint to ensure the promo_expiry is greater than the current date
+    # check constraint for promo_discount
+    __table_args__ = tuple([CheckConstraint("promo_expiry > CURRENT_TIMESTAMP", name="check_promo_expiry"),
+                           CheckConstraint("promo_discount > 0", name="check_promo_discount")])
 
 
 class Booking(SQLModel, table=True):
@@ -339,20 +353,13 @@ class Booking(SQLModel, table=True):
     booking_date: datetime = Field(
         sa_column=Column(pg.TIMESTAMP, nullable=False, default=datetime.now)
     )
+
     booking_event_date: datetime = Field(
         sa_column=Column(pg.TIMESTAMP, nullable=False))
-    # check constraint for booking_guest_count, there must be atleast 1 guest
-    booking_guest_count: int = Field(
-        sa_column=Column(pg.INTEGER, CheckConstraint(
-            "booking_guest_count > 0"), nullable=False))
-    # check constraint for booking_total_cost
-    booking_total_cost: int = Field(
-        sa_column=Column(pg.INTEGER, CheckConstraint(
-            "booking_total_cost >= 0"), nullable=False))
 
-    # check constraint for booking_discount
-    booking_discount: float = Field(sa_column=Column(pg.FLOAT, CheckConstraint(
-        "booking_discount > 0"), nullable=True))
+    booking_guest_count: int = Field(
+        sa_column=Column(pg.INTEGER,  nullable=False))
+
     booking_status: BookingStatus = Field(
         sa_column=Column(PgEnum(BookingStatus), nullable=False,
                          default=BookingStatus.pending)
@@ -371,7 +378,8 @@ class Booking(SQLModel, table=True):
 
     # one-many relationship with venue(COMPULSORY)
     venue_id: uuid.UUID = Field(
-        sa_column=Column(pg.UUID, ForeignKey("venue.venue_id"), nullable=False)
+        sa_column=Column(pg.UUID, ForeignKey(
+            "venue.venue_id"), nullable=False)
     )
     venue: "Venue" = Relationship(back_populates="bookings")
 
@@ -389,7 +397,7 @@ class Booking(SQLModel, table=True):
     )
     decoration: "Decoration" = Relationship(back_populates="bookings")
 
-    # one-many relationship with car_reservation(OPTIONAL)
+    # one-many relationship with car_reservation
     car_reservations: list["CarReservation"] = Relationship(
         back_populates="booking", sa_relationship_kwargs={"cascade": "all, delete-orphan", "lazy": "selectin"})
 
@@ -400,7 +408,10 @@ class Booking(SQLModel, table=True):
     )
     promo: "Promo" = Relationship(back_populates="bookings")
     # unique constraint for venue and booking_event_date
-    __table_args__ = (
-        UniqueConstraint("venue_id", "booking_event_date",
-                         name="unique_car_make_model"),
-    )
+    # check to see if booking date is not in the past
+    # check to see if booking event date is not in the past
+    # check constraint for booking_guest_count, there must be atleast 1 guest
+    # check constraint for booking_total_cost
+    # check constraint for booking_discount
+    __table_args__ = tuple([UniqueConstraint("venue_id", "booking_event_date", name="unique_car_make_model"), CheckConstraint("booking_date > CURRENT_TIMESTAMP", name="check_booking_date"), CheckConstraint("booking_event_date > CURRENT_TIMESTAMP",
+                           name="check_booking_event_date"), CheckConstraint("booking_guest_count > 0", name="check_booking_guest_count")])

@@ -2,8 +2,6 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.models import Promo
 from uuid import UUID
-import datetime
-import pytz
 from src.promos.schemas import CreatePromoModel
 
 
@@ -21,12 +19,11 @@ class PromoService:
         return promo if promo else None
 
     async def create_promo(self, promo_data: CreatePromoModel, session: AsyncSession):
-        # Ensure promo_expiry is converted to UTC
-        promo_data.promo_expiry = promo_data.promo_expiry.astimezone(
-            pytz.UTC).replace(tzinfo=None)
         new_promo = Promo(**promo_data.model_dump())
         session.add(new_promo)
         await session.commit()
+        await session.refresh(new_promo)
+
         return new_promo
 
     async def delete_promo(self, promo_id: UUID, session: AsyncSession):

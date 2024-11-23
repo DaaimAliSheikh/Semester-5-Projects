@@ -4,7 +4,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from src.db.main import get_session
 from uuid import UUID
 from src.caterings.service import CateringService
-from src.caterings.schemas import CateringModel, CreateCateringModel, DishModel, CreateDishModel
+from src.caterings.schemas import CateringModel, CreateCateringModel, DishModel, CreateDishModel, CateringMenuItemModel
 from src.users.JWTAuthMiddleware import JWTAuthMiddleware
 from src.users.schemas import UserModel
 from src.utils import upload_image
@@ -15,19 +15,27 @@ catering_router = APIRouter(prefix="/caterings")
 catering_service = CateringService()
 
 
-# Get all caterings along with their dishes
+# Get all caterings along with their menu items
 @catering_router.get("/", response_model=list[CateringModel], status_code=status.HTTP_200_OK)
 async def get_all_caterings(session: AsyncSession = Depends(get_session)):
     caterings = await catering_service.get_all_caterings(session)
     return caterings
 
+# Get all  dishes
+
+
+@catering_router.get("/dishes", response_model=list[DishModel], status_code=status.HTTP_200_OK)
+async def get_all_dishes(session: AsyncSession = Depends(get_session)):
+    dishes = await catering_service.get_all_dishes(session)
+    return dishes
+
 
 # Add a new catering
 @catering_router.post("/", response_model=CateringModel, status_code=status.HTTP_201_CREATED)
-async def create_venue(
+async def create_catering(
     catering_name: str = Form(...),
     catering_description: str = Form(...),
-    catering_image: UploadFile | None = File(...),  # Handle image file upload
+    catering_image: UploadFile | None = File(None),  # Handle image file upload
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
@@ -106,7 +114,7 @@ async def delete_dish(dish_id: UUID, user: UserModel = Depends(JWTAuthMiddleware
 
 
 # Add a dish to a catering
-@catering_router.post("/{catering_id}/dishes/{dish_id}", status_code=status.HTTP_201_CREATED)
+@catering_router.post("/{catering_id}/dishes/{dish_id}", response_model=CateringMenuItemModel, status_code=status.HTTP_201_CREATED)
 async def add_dish_to_catering(catering_id: UUID,  dish_id: UUID, user: UserModel = Depends(JWTAuthMiddleware),  session: AsyncSession = Depends(get_session)):
     if (not user.is_admin):
         raise HTTPException(

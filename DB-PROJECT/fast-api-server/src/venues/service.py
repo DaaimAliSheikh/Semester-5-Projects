@@ -23,6 +23,7 @@ class VenueService:
         new_venue = Venue(**venue_data.model_dump())
         session.add(new_venue)
         await session.commit()
+        await session.refresh(new_venue)
         return new_venue
 
     async def delete_venue(self, venue_id: UUID, session: AsyncSession):
