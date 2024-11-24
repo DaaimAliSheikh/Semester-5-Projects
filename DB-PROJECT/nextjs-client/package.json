@@ -14,10 +14,13 @@
     "@emotion/styled": "^11.13.0",
     "@mui/material": "^6.1.5",
     "@mui/material-nextjs": "^6.1.5",
+    "@tanstack/react-query": "^5.61.3",
     "axios": "^1.7.7",
     "next": "14.2.11",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "react-query": "^3.39.3",
+    "zustand": "^5.0.1"
   },
   "devDependencies": {
     "@types/node": "^20",

@@ -13,6 +13,7 @@ from src.cars.routes import car_router
 from src.bookings.routes import booking_router
 import logging
 from fastapi.responses import FileResponse
+from src.config import Config
 
 
 @asynccontextmanager
@@ -28,7 +29,8 @@ app = FastAPI(lifespan=life_span)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Replace with your React app's URL
+    # Replace with your React app's URL
+    allow_origins=[str(Config.CLIENT_BASE_URL)],
     allow_credentials=True,  # allow client to send cookies
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers

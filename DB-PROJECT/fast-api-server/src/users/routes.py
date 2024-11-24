@@ -17,6 +17,10 @@ user_service = UserService()
 # async def get_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
 #     return user
 
+@user_router.get("/me", response_model=UserModel, status_code=status.HTTP_201_CREATED)
+async def get_current_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
+    return user
+
 
 @user_router.post("/signup", response_model=UserModel, status_code=status.HTTP_201_CREATED)
 async def create_user(response: Response, user_data: CreateUserModel, session: AsyncSession = Depends(get_session)):
@@ -52,7 +56,7 @@ async def login_user(response: Response, user_data: LoginUserModel, session: Asy
                         detail=f"User does not exist")
 
 
-@user_router.post("/logout",  response_model=UserModel,   status_code=status.HTTP_200_OK)
+@user_router.get("/logout",   status_code=status.HTTP_200_OK)
 async def logout_user(response: Response, user: UserModel = Depends(JWTAuthMiddleware)):
     response.delete_cookie(key="access_token")
     return {"detail": "Successfully logged out"}

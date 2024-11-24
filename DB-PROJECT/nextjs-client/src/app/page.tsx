@@ -1,5 +1,19 @@
-import { Box, Typography } from "@mui/material";
+"use client";
+import LogoutButton from "@/components/LogoutButton";
+import { useAuthGuard } from "@/hooks/useAuthGuard";
 
-export default function Home() {
-  return <div>hello</div>;
-}
+const HomePage = () => {
+  const { loading } = useAuthGuard();
+  return loading ? (
+    "loading"
+  ) : (
+    <div>
+      HomePage
+      <div>
+        <LogoutButton />
+      </div>
+    </div>
+  );
+};
+
+export default HomePage;
