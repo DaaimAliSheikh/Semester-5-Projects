@@ -19,6 +19,18 @@ async def get_all_cars(session: AsyncSession = Depends(get_session)):
     return cars
 
 
+@car_router.get("/reservations",  response_model=list[CarReservationModel], status_code=status.HTTP_200_OK)
+async def get_all_reservations(session: AsyncSession = Depends(get_session), user: UserModel = Depends(JWTAuthMiddleware)):
+    print("hey")
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
+    # Fetch all car reservations
+    car_reservations = await car_service.get_all_car_reservations(session)
+    return car_reservations
+
+
 @car_router.get("/{car_id}", response_model=CarModel, status_code=status.HTTP_200_OK)
 async def get_car(car_id: UUID, session: AsyncSession = Depends(get_session)):
     car = await car_service.get_car(car_id, session)
@@ -77,20 +89,6 @@ async def delete_car(
     return deleted
 
 
-@car_router.get("/reservations", response_model=list[CarReservationModel], status_code=status.HTTP_200_OK)
-async def get_all_car_reservations(
-    user: UserModel = Depends(JWTAuthMiddleware),
-    session: AsyncSession = Depends(get_session),
-):
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
-        )
-    # Fetch all car reservations
-    car_reservations = await car_service.get_all_car_reservations(session)
-    return car_reservations
-
-
 @car_router.post("/{car_id}/{booking_id}", response_model=CarReservationModel, status_code=status.HTTP_201_CREATED)
 async def add_car_reservation(
     car_id: UUID,
@@ -127,4 +125,25 @@ async def remove_car_reservation(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="Car reservation not found"
         )
+
     return deleted_reservation
+
+
+# @car_router.patch("/{booking_id}", response_model=CarModel, status_code=status.HTTP_200_OK)
+# async def update_car_quantity(
+#     car_id: UUID,
+#     car_quantity: int,
+#     user: UserModel = Depends(JWTAuthMiddleware),
+#     session: AsyncSession = Depends(get_session),
+# ):
+#     if not user.is_admin:
+#         raise HTTPException(
+#             status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+#         )
+
+#     car = await car_service.update_car_quantity(car_id, car_quantity, session)
+#     if not car:
+#         raise HTTPException(
+#             status_code=status.HTTP_404_NOT_FOUND, detail="car not found"
+#         )
+#     return car

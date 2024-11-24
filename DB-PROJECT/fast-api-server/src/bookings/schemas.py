@@ -1,10 +1,10 @@
 from pydantic import BaseModel, Field, field_validator
 from uuid import UUID
 
-from sqlalchemy import Update
-from src.db.models import Booking, CarReservation, Payment, Promo, User, Catering, Decoration, Venue, Promo, PaymentMethod
+from src.db.models import CarReservation, Payment, Promo, User, Catering, Decoration, Venue, Promo, PaymentMethod
 from datetime import datetime
 from src.db.models import BookingStatus
+from src.users.schemas import UserModel
 
 
 class BookingModel(BaseModel):
@@ -13,9 +13,9 @@ class BookingModel(BaseModel):
     booking_event_date: datetime
     booking_guest_count: int = Field(ge=1)
     booking_status: BookingStatus
-    user: User
+    user: UserModel  # exlcudes the password
     venue: Venue
-    payment: Payment | None = None
+    payment: Payment
     catering: Catering | None = None
     decoration: Decoration | None = None
     car_reservations: list[CarReservation]
@@ -28,7 +28,6 @@ class PaymentModel(BaseModel):
     total_amount: int = Field(ge=0)
     payment_method: PaymentMethod
     discount: float = Field(ge=0)
-    booking: Booking
 
 
 class CreateBookingModel(BaseModel):
@@ -37,7 +36,6 @@ class CreateBookingModel(BaseModel):
     booking_status: BookingStatus = BookingStatus.pending
     user_id: UUID
     venue_id: UUID
-    # payment will be created manually
     catering_id: UUID | None = None
     decoration_id: UUID | None = None
     promo_id: UUID | None = None
@@ -59,15 +57,14 @@ class CreatePaymentModel(BaseModel):
 
 
 class UpdateBookingModel(BaseModel):
-    booking_event_date: datetime
-    booking_guest_count: int = Field(ge=1)
-    booking_status: BookingStatus = BookingStatus.pending
-    user_id: UUID
-    venue_id: UUID
-    # payment will be created manually
-    catering_id: UUID | None
-    decoration_id: UUID | None
-    promo_id: UUID | None
+    booking_event_date: datetime | None = None
+    booking_guest_count: int | None = Field(ge=1, default=None)
+    booking_status: BookingStatus | None = None
+    user_id: UUID | None = None
+    venue_id: UUID | None = None
+    catering_id: UUID | None = None
+    decoration_id: UUID | None = None
+    promo_id: UUID | None = None
 
     @field_validator("booking_event_date")
     def validate_promo_expiry(cls, value):

@@ -1,7 +1,8 @@
+from sqlalchemy import func
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.models import Booking, Payment
-from uuid import UUID, uuid4
+from src.db.models import Booking, Payment, Car
+from uuid import UUID
 from src.bookings.schemas import CreateBookingWithPaymentModel, UpdateBookingWithPaymentModel
 
 
@@ -10,19 +11,36 @@ class BookingService:
         query = select(Booking)
         result = await session.exec(query)
         bookings = result.all()
-        return bookings
+        new_bookings = []
+        for booking in bookings:
+            # need to add array
+            await session.refresh(booking, ["user", "venue", "car_reservations", "decoration", "catering", "payment", "promo"])
+            new_bookings.append(booking)
+        return new_bookings
 
     async def get_booking(self, booking_id: UUID, session: AsyncSession):
         query = select(Booking).where(Booking.booking_id == booking_id)
         result = await session.exec(query)
         booking = result.first()
+
+        await session.refresh(booking, ["user", "venue", "car_reservations", "decoration", "catering", "payment", "promo"])
         return booking if booking else None
 
     async def create_booking_with_payment(self, booking_and_payment_data: CreateBookingWithPaymentModel, session: AsyncSession):
+        query = select(Booking).where(func.date(Booking.booking_event_date) == booking_and_payment_data.booking.booking_event_date.date(),
+                                      Booking.venue_id == booking_and_payment_data.booking.venue_id)
+        result = await session.exec(query)
+        booking = result.first()
+        if booking:
+            return None
+
         # Create the Booking object
         new_booking = Booking(
             **booking_and_payment_data.booking.model_dump()
         )
+        session.add(new_booking)
+        await session.commit()
+        await session.refresh(new_booking, ["user", "venue", "car_reservations", "decoration", "catering", "payment", "promo"])
 
         # Create the Payment object and associate it with the Booking
         new_payment = Payment(
@@ -30,30 +48,50 @@ class BookingService:
             booking=new_booking  # Link the payment to the booking
         )
 
-        # Add both objects to the session
-        session.add(new_booking)
         session.add(new_payment)
-
-        # Commit the transaction
         await session.commit()
-
-        await session.refresh(new_booking)
+        # refersh booking again to get payment data also
+        await session.refresh(new_booking, ["user", "venue", "car_reservations", "decoration", "catering", "payment", "promo"])
 
         return new_booking
 
     async def delete_booking(self, booking_id: UUID, session: AsyncSession):
-        query = select(Booking).where(Booking.booking_id == booking_id)
-        results = await session.exec(query)
-        booking = results.first()
+        booking = await self.get_booking(booking_id, session)
         if not booking:
             return None
 
+        # increment the car quantity of each car used in this booking's car reservations
+        for car_reservation in booking.car_reservations:
+            query = select(Car).where(Car.car_id == car_reservation.car_id)
+            result = await session.exec(query)
+            car = result.first()
+            if car:
+                setattr(car, "car_quantity", car.car_quantity + 1)
+
+        print("\n\n","awda", "\n\n")
+        # all car reservations will be deleted because of on delete cascade relationship set in db/models
         await session.delete(booking)
         await session.commit()
+        # await session.refresh(booking, ["user", "venue", "car_reservations", "decoration", "catering", "payment", "promo"])
         return booking
 
-    # async def update_booking_and_payment(self, booking_and_payment_data: UpdateBookingWithPaymentModel, session: AsyncSession):
-    #     query = select(Booking).where(Booking.booking_id == booking_id)
-    #     results = await session.exec(query)
-    #     booking = results.first()
-    #     return booking
+    # update booking status using this
+
+    async def update_booking_with_payment(self, booking_id: UUID,  booking_and_payment_data: UpdateBookingWithPaymentModel, session: AsyncSession):
+
+        booking = await self.get_booking(booking_id, session)
+        if not booking:
+            return None
+
+        # print("\n\n", booking, "\n\n")
+        # Update the booking fields
+        for field, value in booking_and_payment_data.booking.model_dump(exclude_unset=True).items():
+            setattr(booking, field, value)
+            # Update the payment fields
+        if booking.payment:
+            for field, value in booking_and_payment_data.payment.model_dump(exclude_unset=True).items():
+                setattr(booking.payment, field, value)
+
+        await session.commit()
+        await session.refresh(booking, ["user", "venue", "car_reservations", "decoration", "catering", "payment", "promo"])
+        return booking

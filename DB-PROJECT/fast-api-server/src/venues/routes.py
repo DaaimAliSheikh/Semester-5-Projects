@@ -37,7 +37,7 @@ async def get_venue_reviews(venue_id: UUID, session: AsyncSession = Depends(get_
                         detail="Venue not found")
 
 
-@venue_router.post("/reviews/{venue_id}", status_code=status.HTTP_201_CREATED)
+@venue_router.post("/reviews/{venue_id}", response_model=VenueReviewModel, status_code=status.HTTP_201_CREATED)
 async def create_review(
     venue_id: UUID,
     venue_review_data: CreateVenueReviewModel,
@@ -72,8 +72,8 @@ async def delete_venue_review(
 async def create_venue(
     venue_name: str = Form(...),
     venue_address: str = Form(...),
-    venue_capacity: int = Form(...),
-    venue_price_per_day: int = Form(...),
+    venue_capacity: int = Form(..., ge=1),
+    venue_price_per_day: int = Form(..., ge=0),
     venue_image: UploadFile | None = File(None),  # Handle image file upload
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),

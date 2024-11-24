@@ -33,5 +33,5 @@ async def JWTAuthMiddleware(access_token: str = Cookie(None), session: AsyncSess
             )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"{e}",
+            detail=f"Error signing in user: {e}",
         )

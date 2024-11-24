@@ -1,9 +1,10 @@
 from enum import Enum
+from typing import Optional
 from sqlmodel import SQLModel, Field, Column, Relationship  # type: ignore
 from datetime import datetime
 import sqlalchemy.dialects.postgresql as pg
 import uuid
-from sqlalchemy import Enum as PgEnum, ForeignKey, CheckConstraint, UniqueConstraint,  text
+from sqlalchemy import Enum as PgEnum, ForeignKey, CheckConstraint, UniqueConstraint,  text, Index
 
 
 # Enums
@@ -114,7 +115,8 @@ class Venue(SQLModel, table=True):
     # in list["Type"], Type should be class name not table name(VenueReview, not venue_review)
 
     # one-many relationship with booking
-    bookings: list["Booking"] = Relationship(back_populates="venue")
+    bookings: list["Booking"] = Relationship(back_populates="venue", sa_relationship_kwargs={
+                                             "cascade": "all, delete-orphan", "lazy": "selectin"})
 
     # check constraint for venue_rating
     # check constraint for venue_capacity
@@ -169,13 +171,13 @@ class Payment(SQLModel, table=True):
                          default=PaymentMethod.debit_card)
     )
     # one-one relationship with booking
+    booking: "Booking" = Relationship(back_populates="payment")
 
     booking_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey(
             "booking.booking_id", ondelete="CASCADE"), nullable=False)
     )
 
-    booking: "Booking" = Relationship(back_populates="payment")
     # check constraint for amount_payed
     # check constraint for total_amount
     __table_args__ = tuple([CheckConstraint(
@@ -372,13 +374,13 @@ class Booking(SQLModel, table=True):
     user: "User" = Relationship(back_populates="bookings")
 
     # one-one relationship with payment(COMPULSORY)
-    payment: "Payment" = Relationship(back_populates="booking", sa_relationship_kwargs={
-        "cascade": "all, delete-orphan"})
+    payment: Payment | None = Relationship(back_populates="booking", sa_relationship_kwargs={
+        "cascade": "all, delete-orphan", "lazy": "selectin"})
 
     # one-many relationship with venue(COMPULSORY)
     venue_id: uuid.UUID = Field(
         sa_column=Column(pg.UUID, ForeignKey(
-            "venue.venue_id"), nullable=False)
+            "venue.venue_id", ondelete="CASCADE"), nullable=False)
     )
     venue: "Venue" = Relationship(back_populates="bookings")
 
@@ -406,15 +408,19 @@ class Booking(SQLModel, table=True):
             "promo.promo_id", ondelete="CASCADE"), nullable=True)
     )
     promo: "Promo" = Relationship(back_populates="bookings")
-    # unique constraint for venue and booking_event_date
     # check to see if booking date is not in the past
     # check to see if booking event date is not in the past
     # check constraint for booking_guest_count, there must be atleast 1 guest
     # check constraint for booking_total_cost
     # check constraint for booking_discount
-    __table_args__ = tuple([UniqueConstraint(
+    __table_args__ = tuple([Index(
+        'unique_venue_reservation_day',
         "venue_id",
-        "booking_event_date",
-        name="unique_venue_reservation_day"
+        text('DATE(booking_event_date)'),
+        unique=True
     ), CheckConstraint("booking_date > CURRENT_TIMESTAMP", name="check_booking_date"), CheckConstraint("booking_event_date > CURRENT_TIMESTAMP",
                                                                                                        name="check_booking_event_date"), CheckConstraint("booking_guest_count > 0", name="check_booking_guest_count")])
+
+    # unique index for venue and booking_event_date
+# PostgreSQL doesn't allow functions in UNIQUE constraints, but it does allow them in unique indexes
+# A unique index provides the same guarantee as a unique constraint while also improving query performance

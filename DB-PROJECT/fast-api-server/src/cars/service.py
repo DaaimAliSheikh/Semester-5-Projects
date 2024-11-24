@@ -67,5 +67,16 @@ class CarService:
         if not car_reservation:
             return None
         await session.delete(car_reservation)
+        # Increment car quantity
+        car = await self.get_car(car_reservation.car_id, session)
+        if car:
+            await self.update_car_quantity(car.car_id, car.car_quantity + 1, session)
         await session.commit()
         return car_reservation
+
+    async def update_car_quantity(self, car_id: UUID, car_quantity: int, session: AsyncSession):
+        car = await self.get_car(car_id, session)
+        setattr(car, "car_quantity", car_quantity)
+        await session.commit()
+        await session.refresh(car)
+        return car if car else None
