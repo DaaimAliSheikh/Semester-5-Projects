@@ -76,8 +76,6 @@ example TF-IDF chunk to be calculated:
 
 
 
-
-
 FOR ALL SENTENCES IN A CHUNK, A THREAD WILL:
 
 *CALCULATE TF of a sentence:
@@ -101,7 +99,35 @@ TF = {
 *Load the idf from idf.bin back into a MAP
 *Create an empty TF-IDF map and add all the TF words with new values:
 
-TF-IDF[word] = count * idf value of that word(0 if word not found)
+TF-IDF[word] = old_value * idf value of that word(0 if word not found)
+
+*Store this TF-IDF vector and corresponding sentence in that thread's
+chunk text file document_files/tf-idf-chunks
+
+
+
+
+
+
+
+
+COSINE SIMILARITY:
+- input string
+- create input TF of that input string
+- create input TF-IDF using that TF
+
+- create array of scoremaps[numthreads]
+- scoremap = {3.4 : "I am Ahad"}
+
+- Each thread will operate on their respective CHUNK files  
+- Each thread will be given their respective scoremaps[i]
+
+
+
+
+
+
+
 
 
 

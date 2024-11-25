@@ -21,7 +21,7 @@ int main() {
   const int numThreads = 1;
   /// * If you generate embeddings for x threads then the cosine similarity
   /// search should also be with x threads
-  /// * make sure each chunk of the dataset that is divied into numThreads
+  /// * make sure each chunk of the dataset that is divided into numThreads
   /// contains atleast 1 complete sentence else there will be repeated sentences
 
   std::cout << "1. Generate TF-IDF Embeddings for the the dataset provided in "
@@ -38,7 +38,7 @@ int main() {
     std::getline(std::cin, choice);
 
     if (choice == "1") {
-      auto start = std::chrono::high_resolution_clock::now();
+      double start = omp_get_wtime();
       std::map<std::string, double> idf = calculateIDF(
           test_file_path,
           numThreads); // test_file_path and number of threads to process it
@@ -49,11 +49,11 @@ int main() {
       /// calculate tf-idf chunks
       calculateTFIDF(test_file_path, idf, numThreads);
 
-      auto end = std::chrono::high_resolution_clock::now();
+      double end = omp_get_wtime();
 
       // Calculate the duration in milliseconds
-      std::chrono::duration<double> duration = end - start;
-      std::cout << "Embeddings generated successfully in " << duration.count()
+      double duration = end - start;
+      std::cout << "Embeddings generated successfully in " << duration
                 << " seconds\n"
                 << std::endl;
       break;
@@ -92,11 +92,11 @@ int main() {
         break;
       }
       std::cout << "Searching........" << std::endl;
-      auto start = std::chrono::high_resolution_clock::now(); // start clock
+      double start = omp_get_wtime(); // start clock
 
       std::vector<std::string> topSentences =
           findTopKMostSimilarDocs(question, k, numThreads);
-      auto end = std::chrono::high_resolution_clock::now(); // end clock
+      double end = omp_get_wtime(); // end clock
 
       std::cout << "The top " << k
                 << " most similar sentences are:" << std::endl;
@@ -104,10 +104,9 @@ int main() {
         std::cout << i + 1 << ". " << topSentences[i] << std::endl;
 
       // Calculate the duration in milliseconds
-      std::chrono::duration<double> duration = end - start;
+      double duration = end - start;
       std::cout << std::endl;
-      std::cout << "Time taken: " << duration.count() << " seconds\n"
-                << std::endl;
+      std::cout << "Time taken: " << duration << " seconds" << std::endl;
 
       break;
     } else {

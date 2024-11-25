@@ -87,13 +87,6 @@ std::vector<std::string> findTopKMostSimilarDocs(std::string sentence, int k,
     inputTFIDF[word.first] = word.second * idfValue;
   }
 
-  // Map to store similarity scores and corresponding document sentences
-  // multi map to prevent overwrite if the cosine score of multiple entries is
-  // same
-  std::multimap<double, std::string, std::greater<>>
-      scoreMap; /// greater<> sorts the key(similarity score here) in descending
-                /// order when inserting a pair
-
   // array of local score maps
   std::vector<std::multimap<double, std::string>> local_scoreMaps(numThreads);
 
@@ -136,6 +129,12 @@ std::vector<std::string> findTopKMostSimilarDocs(std::string sentence, int k,
   }
   /// merge the local score maps in to global, merged in descending order of
   /// similarity
+  // Map to store similarity scores and corresponding document sentences
+  // multi map to prevent overwrite if the cosine score of multiple entries is
+  // same
+  std::multimap<double, std::string, std::greater<>>
+      scoreMap; /// greater<> sorts the key(similarity score here) in descending
+                /// order when inserting a pair
   for (const auto &m : local_scoreMaps) {
     scoreMap.insert(m.begin(),
                     m.end()); // Insert each map's elements into the result

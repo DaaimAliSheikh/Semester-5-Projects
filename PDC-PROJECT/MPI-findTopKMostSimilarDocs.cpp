@@ -255,8 +255,12 @@ int main(int argc, char *argv[]) {
                             : 0.0; // Default IDF value if word not found
       inputTFIDF[word.first] = word.second * idfValue;
     }
+    std::cout << "Searching........" << std::endl;
   }
+
+  /// All initializations done, START TIMER
   MPI_Barrier(MPI_COMM_WORLD);
+  double start_time = MPI_Wtime();
   /// ALL PROCESSORS
   std::ifstream inputFile("document_files/tf-idf-chunks/" +
                           std::to_string(world_rank) + ".txt");
@@ -313,6 +317,28 @@ int main(int argc, char *argv[]) {
     std::cout << "The top " << k << " most similar sentences are:" << std::endl;
     for (int i = 0; i < topKSentences.size(); ++i)
       std::cout << i + 1 << ". " << topKSentences[i] << std::endl;
+  }
+
+  // Synchronize processes again after computation
+  MPI_Barrier(MPI_COMM_WORLD);
+  // END TIMER
+  double end_time = MPI_Wtime();
+
+  // Calculate elapsed time for each process
+  double elapsed_time = end_time - start_time;
+
+  // Use MPI_Reduce to calculate the maximum elapsed time
+  double max_time;
+  MPI_Reduce(&elapsed_time, &max_time, 1, MPI_DOUBLE, MPI_MAX, 0,
+             MPI_COMM_WORLD);
+
+  // Rank 0 displays the total time taken
+  if (world_rank == 0) {
+    std::cout << std::endl;
+    std::cout << "Total execution time (maximum time across all processes) "
+                 "taken to find the top "
+              << k << " most similar sentences: " << max_time << " seconds."
+              << std::endl;
   }
 
   MPI_Finalize(); // Finalize the MPI environment

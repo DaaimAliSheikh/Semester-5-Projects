@@ -29,3 +29,6 @@ FOLDER STRUCTURE
 
   * COMPILE AND RUN mpi-idf-calculation.cpp
    `mpicxx MPI-findTopKMostSimilarDocs.cpp -o MPI-findTopKMostSimilarDocs.exe && mpirun -np 4 --oversubscribe MPI-findTopKMostSimilarDocs.exe && rm MPI-findTopKMostSimilarDocs.exe`
+
+    /// * If you generate embeddings for x threads then the cosine similarity
+  /// search should also be with x threads
