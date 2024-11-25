@@ -1,0 +1,116 @@
+1. CREATE TF-IDF EMBEDDINGS 
+
+
+*Create IDF MAP
+
+example IDF MAP to be calculated:
+idf = {
+	"word" : 0.1
+	"word2" : 0.2
+}
+
+*Divide the work by creating P number of idfs: 
+local_idfs[numThreads]
+
+*File reading will be divided into chunks with different start and end: 
+chunk_size = fileSize / numThreads
+
+*START positioned to the nearest next full stop
+*END used to stop reading sentences once we cross it
+
+*Each thread will read all sentences(BY TOKENIZING) from their chunks and update their
+LOCAL idf, eg thread 0:
+
+sentence: I am Daaim 
+local_idf[0] = {
+	"i" : 1
+	"am" : 1
+	"daaim" : 1 
+}
+sentence: I am Ahad am
+local_idf[0] = {
+	"i" : 2
+	"am" : 2    // repetition of word within same sentence ignore
+	"daaim" : 1 
+	"ahad" : 1
+}
+
+*Maintain a local sentence count and merge it using REDUCTION CLAUSE
+
+*Merge all local_idfs into one idf and then apply this for each word:
+idf[word] = log((double)total_sentence_count / (1 + count)); 
+
+*Store it as document_files/idf.bin
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+2. CREATE TF-IDF MAP
+
+*Sentences divided among P chunks with different start and end
+
+
+*Each thread will will create create a chunk file in document_files/tf-idf-chunks as N.txt, and store the following:
+
+example TF-IDF chunk to be calculated:
+
+//chunk 0.txt
+(tf-idf-vector) SPACE (sentence)
+
+{"hi": 1.7, "bye": 2} hi bye
+{"cool": 1.72, "simplistic": 2.14} simplistic and silly
+.....
+
+
+
+
+
+
+FOR ALL SENTENCES IN A CHUNK, A THREAD WILL:
+
+*CALCULATE TF of a sentence:
+
+*Read a sentence and tokenize into array of words
+*Create MAP to count the number of occurence of each word
+
+TF = {
+	"word" : 1
+	"word2" : 2
+}
+
+*For each entry:
+TF[word] = count / sentence_size
+
+TF = {
+	"word" : 0.2
+	"word2" : 0.4
+}
+
+*Load the idf from idf.bin back into a MAP
+*Create an empty TF-IDF map and add all the TF words with new values:
+
+TF-IDF[word] = count * idf value of that word(0 if word not found)
+
+
+
+
+
+
+
+
+
+
+
+

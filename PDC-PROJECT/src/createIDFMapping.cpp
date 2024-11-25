@@ -45,7 +45,7 @@ int createIDFMapping(const std::string &filepath,
     return -1;
   }
 
-  // Adjust start position to the next full sentence
+  // Adjust start position to the next full stop, if start is not 0
   adjustToSentenceBoundary2(inFile, start);
 
   // Move file pointer to the adjusted starting point
@@ -62,7 +62,6 @@ int createIDFMapping(const std::string &filepath,
 
     sentence = trim2(sentence);
 
-    // Use OpenMP critical section for accessing the global variable safely
     if (sentence != "") {
       /// increment sentence_count
       sentence_count++;

@@ -24,3 +24,8 @@ FOLDER STRUCTURE
     |── include/ #Directory for header files
     ├── build/ # Directory for object files
     └── bin/ # Directory for the final executable
+    
+
+
+  * COMPILE AND RUN mpi-idf-calculation.cpp
+   `mpicxx MPI-findTopKMostSimilarDocs.cpp -o MPI-findTopKMostSimilarDocs.exe && mpirun -np 4 --oversubscribe MPI-findTopKMostSimilarDocs.exe && rm MPI-findTopKMostSimilarDocs.exe`

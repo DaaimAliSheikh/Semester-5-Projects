@@ -58,6 +58,7 @@ int main() {
                 << std::endl;
       break;
     } else if (choice == "2") {
+      /// check if tf-idf-chunks directory is empty
       if (fs::directory_iterator(tfidf_dir) == fs::directory_iterator{}) {
         std::cout << "Please generate the embeddings first." << std::endl;
         continue;
@@ -91,11 +92,11 @@ int main() {
         break;
       }
       std::cout << "Searching........" << std::endl;
-      auto start = std::chrono::high_resolution_clock::now();
+      auto start = std::chrono::high_resolution_clock::now(); // start clock
 
       std::vector<std::string> topSentences =
           findTopKMostSimilarDocs(question, k, numThreads);
-      auto end = std::chrono::high_resolution_clock::now();
+      auto end = std::chrono::high_resolution_clock::now(); // end clock
 
       std::cout << "The top " << k
                 << " most similar sentences are:" << std::endl;
