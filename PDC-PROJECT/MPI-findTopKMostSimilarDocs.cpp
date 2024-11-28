@@ -208,7 +208,7 @@ int main(int argc, char *argv[]) {
   std::vector<std::multimap<double, std::string>> local_scoreMaps(world_size);
   std::string question;
   int k;
-
+//time
   /// ONE PROCESSOR
   if (world_rank == 0) {
     /// check if tf-idf-chunks directory is empty

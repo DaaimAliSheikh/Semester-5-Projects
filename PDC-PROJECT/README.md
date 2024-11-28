@@ -8,7 +8,7 @@
 
 * document_files folder will contain:
   - test.txt
-  - tf-idf-chunks folder (auto-generated)
+  - tf-idf-chunks folder 
   - idf.bin (auto-generated)
 
 FOLDER STRUCTURE

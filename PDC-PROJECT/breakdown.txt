@@ -1,3 +1,7 @@
+# Usage Natural Language Procsessing, ML, PATTERNS RECOGNIZE
+# RETRIEVAL AUGMENTED GENERATION APPS
+
+
 1. CREATE TF-IDF EMBEDDINGS 
 
 
@@ -34,6 +38,15 @@ local_idf[0] = {
 	"daaim" : 1 
 	"ahad" : 1
 }
+sentence: I am SOHAIB! am
+local_idf[0] = {
+	"i" : 3
+	"am" : 3    // repetition of word within same sentence ignore
+	"daaim" : 1 
+	"ahad" : 1
+	"sohaib": 1
+}
+
 
 *Maintain a local sentence count and merge it using REDUCTION CLAUSE
 

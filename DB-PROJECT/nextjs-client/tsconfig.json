@@ -27,6 +27,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/hooks/useAuth.ts"
-, "src/app/auth/signup"  ],
+, "src/app/auth/login"  ],
   "exclude": ["node_modules"]
 }
