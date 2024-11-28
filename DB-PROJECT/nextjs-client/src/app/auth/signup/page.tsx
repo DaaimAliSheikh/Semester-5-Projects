@@ -17,33 +17,30 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Controller, useForm } from "react-hook-form";
 import { z as zod } from "zod";
+import { signUp } from "@/services/apiService";
+import { useAuthStore, User } from "@/stores/authStore";
+import { useMutation } from "react-query";
+import { Snackbar } from "@mui/material";
 
 const schema = zod.object({
-  firstName: zod.string().min(1, { message: "First name is required" }),
-  lastName: zod.string().min(1, { message: "Last name is required" }),
+  username: zod.string().min(1, { message: "Username name is required" }),
   email: zod.string().min(1, { message: "Email is required" }).email(),
   password: zod
     .string()
     .min(6, { message: "Password should be at least 6 characters" }),
-  terms: zod
-    .boolean()
-    .refine((value) => value, "You must accept the terms and conditions"),
 });
 
 type Values = zod.infer<typeof schema>;
 
 const defaultValues = {
-  firstName: "",
-  lastName: "",
+  username: "",
   email: "",
   password: "",
-  terms: false,
 } satisfies Values;
 
 function SignUpPage(): React.JSX.Element {
   const router = useRouter();
-
-  const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [open, setOpen] = React.useState<boolean>(false);
 
   const {
     control,
@@ -52,10 +49,24 @@ function SignUpPage(): React.JSX.Element {
     formState: { errors },
   } = useForm<Values>({ defaultValues, resolver: zodResolver(schema) });
 
+  const { setUser } = useAuthStore();
+  const signupMutation = useMutation({
+    mutationFn: signUp,
+    onSuccess: (user) => {
+      setUser(user);
+    },
+    onError: (error) => {
+      setOpen(true);
+    },
+  });
+
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
-      setIsPending(true);
-      setIsPending(false);
+      signupMutation.mutate(values, {
+        onSuccess: (user: User) => {
+          user.is_admin ? router.push("/dashboard") : router.push("/");
+        },
+      });
     },
     [router, setError]
   );
@@ -82,34 +93,22 @@ function SignUpPage(): React.JSX.Element {
           </Link>
         </Typography>
       </Stack>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
             control={control}
-            name="firstName"
+            name="username"
             render={({ field }) => (
-              <FormControl error={Boolean(errors.firstName)}>
-                <InputLabel>First name</InputLabel>
-                <OutlinedInput {...field} label="First name" />
-                {errors.firstName ? (
-                  <FormHelperText>{errors.firstName.message}</FormHelperText>
+              <FormControl error={Boolean(errors.username)}>
+                <InputLabel>Username</InputLabel>
+                <OutlinedInput {...field} label="Username" />
+                {errors.username ? (
+                  <FormHelperText>{errors.username.message}</FormHelperText>
                 ) : null}
               </FormControl>
             )}
           />
-          <Controller
-            control={control}
-            name="lastName"
-            render={({ field }) => (
-              <FormControl error={Boolean(errors.firstName)}>
-                <InputLabel>Last name</InputLabel>
-                <OutlinedInput {...field} label="Last name" />
-                {errors.firstName ? (
-                  <FormHelperText>{errors.firstName.message}</FormHelperText>
-                ) : null}
-              </FormControl>
-            )}
-          />
+
           <Controller
             control={control}
             name="email"
@@ -136,33 +135,33 @@ function SignUpPage(): React.JSX.Element {
               </FormControl>
             )}
           />
-          <Controller
-            control={control}
-            name="terms"
-            render={({ field }) => (
-              <div>
-                <FormControlLabel
-                  control={<Checkbox {...field} />}
-                  label={
-                    <React.Fragment>
-                      I have read the <Link>terms and conditions</Link>
-                    </React.Fragment>
-                  }
-                />
-                {errors.terms ? (
-                  <FormHelperText error>{errors.terms.message}</FormHelperText>
-                ) : null}
-              </div>
-            )}
-          />
+
           {errors.root ? (
             <Alert color="error">{errors.root.message}</Alert>
           ) : null}
-          <Button disabled={isPending} type="submit" variant="contained">
+          <Button
+            disabled={signupMutation.isLoading}
+            type="submit"
+            variant="contained"
+          >
             Sign up
           </Button>
         </Stack>
       </form>
+      <Snackbar
+        open={open}
+        autoHideDuration={6000}
+        onClose={(open) => setOpen(!open)}
+      >
+        <Alert
+          onClose={(open) => setOpen(!open)}
+          severity="error"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          Invalid credentials
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

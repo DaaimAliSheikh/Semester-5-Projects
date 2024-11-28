@@ -1,4 +1,5 @@
 "use client";
+import PageLoader from "@/components/PageLoader";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 
 export default function RootLayout({
@@ -7,5 +8,5 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   const { loading } = useAuthGuard();
-  return loading ? "loading" : children;
+  return loading ? <PageLoader /> : children;
 }

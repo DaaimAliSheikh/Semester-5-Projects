@@ -18,8 +18,11 @@ import { EyeIcon, EyeClosed as EyeSlashIcon } from "lucide-react";
 // import { EyeSlash as EyeSlashIcon } from "@phosphor-icons/react/dist/ssr/EyeSlash";
 import { Controller, useForm } from "react-hook-form";
 import { z as zod } from "zod";
-import { Box } from "@mui/material";
 import { Dancing_Script } from "next/font/google";
+import { login } from "@/services/apiService";
+import { useMutation } from "react-query";
+import { useAuthStore, User } from "@/stores/authStore";
+import { Snackbar } from "@mui/material";
 
 const ds = Dancing_Script({
   weight: ["400"],
@@ -40,11 +43,8 @@ const defaultValues = {
 } satisfies Values;
 
 export function SignInPage(): React.JSX.Element {
-  const router = useRouter();
-
   const [showPassword, setShowPassword] = React.useState<boolean>();
-
-  const [isPending, setIsPending] = React.useState<boolean>(false);
+  const [open, setOpen] = React.useState<boolean>(false);
 
   const {
     control,
@@ -52,11 +52,25 @@ export function SignInPage(): React.JSX.Element {
     setError,
     formState: { errors },
   } = useForm<Values>({ defaultValues, resolver: zodResolver(schema) });
+  const router = useRouter();
+  const { setUser } = useAuthStore();
+  const loginMutation = useMutation({
+    mutationFn: login,
+    onSuccess: (user) => {
+      setUser(user);
+    },
+    onError: (error) => {
+      setOpen(true);
+    },
+  });
 
   const onSubmit = React.useCallback(
     async (values: Values): Promise<void> => {
-      setIsPending(true);
-      setIsPending(false);
+      loginMutation.mutate(values, {
+        onSuccess: (user: User) => {
+          user.is_admin ? router.push("/dashboard") : router.push("/");
+        },
+      });
     },
     [router, setError]
   );
@@ -83,7 +97,7 @@ export function SignInPage(): React.JSX.Element {
           </Link>
         </Typography>
       </Stack>
-      <form onSubmit={handleSubmit(onSubmit)}>
+      <form noValidate onSubmit={handleSubmit(onSubmit)}>
         <Stack spacing={2}>
           <Controller
             control={control}
@@ -138,7 +152,11 @@ export function SignInPage(): React.JSX.Element {
           {errors.root ? (
             <Alert color="error">{errors.root.message}</Alert>
           ) : null}
-          <Button disabled={isPending} type="submit" variant="contained">
+          <Button
+            disabled={loginMutation.isLoading}
+            type="submit"
+            variant="contained"
+          >
             Sign in
           </Button>
         </Stack>
@@ -154,6 +172,20 @@ export function SignInPage(): React.JSX.Element {
         </Typography>{" "}
         to log in as admin user
       </Alert>
+      <Snackbar
+        open={open}
+        autoHideDuration={6000}
+        onClose={(open) => setOpen(!open)}
+      >
+        <Alert
+          onClose={(open) => setOpen(!open)}
+          severity="error"
+          variant="filled"
+          sx={{ width: "100%" }}
+        >
+          Invalid credentials
+        </Alert>
+      </Snackbar>
     </Stack>
   );
 }

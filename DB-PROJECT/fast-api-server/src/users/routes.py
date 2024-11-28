@@ -42,18 +42,21 @@ async def create_user(response: Response, user_data: CreateUserModel, session: A
 @user_router.post("/login", response_model=UserModel, status_code=status.HTTP_200_OK)
 async def login_user(response: Response, user_data: LoginUserModel, session: AsyncSession = Depends(get_session)):
     user = await user_service.get_user_by_email(user_data.email, session)
-    if user and verify_password(user_data.password, user.password_hash):
-        response.set_cookie(
-            key="access_token",
-            value=create_access_token(user.user_id),
-            httponly=True,  # Secure the cookie from JavaScript access
-            max_age=int(Config.ACCESS_TOKEN_EXPIRY),
-            samesite="lax"
-        )
-        return user
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail=f"User does not exist")
+    if not verify_password(user_data.password, user.password_hash):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
+                            detail="Incorrect username or password")
 
-    raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
-                        detail=f"User does not exist")
+    response.set_cookie(
+        key="access_token",
+        value=create_access_token(user.user_id),
+        httponly=True,  # Secure the cookie from JavaScript access
+        max_age=int(Config.ACCESS_TOKEN_EXPIRY),
+        samesite="lax"
+    )
+    return user
 
 
 @user_router.get("/logout",   status_code=status.HTTP_200_OK)
