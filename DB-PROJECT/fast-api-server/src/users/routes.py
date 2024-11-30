@@ -17,7 +17,7 @@ user_service = UserService()
 # async def get_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
 #     return user
 
-@user_router.get("/me", response_model=UserModel, status_code=status.HTTP_201_CREATED)
+@user_router.get("/me", response_model=UserModel, status_code=status.HTTP_200_OK)
 async def get_current_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
     return user
 

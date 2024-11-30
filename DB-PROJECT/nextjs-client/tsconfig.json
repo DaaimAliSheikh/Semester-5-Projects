@@ -27,6 +27,6 @@
     "**/*.tsx",
     ".next/types/**/*.ts",
     "src/hooks/useAuth.ts"
-, "src/app/auth/login"  ],
+, "src/app/auth/login", "src/components/dashboard/components/AppNavbar.jsx"  ],
   "exclude": ["node_modules"]
 }
