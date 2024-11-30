@@ -38,6 +38,7 @@ const theme = responsiveFontSizes(
       logo: {
         fontFamily: "Dancing Script, cursive", // Use Dancing Script for logo
         fontSize: "2rem",
+        fontWeight: "bold",
       },
     },
   })

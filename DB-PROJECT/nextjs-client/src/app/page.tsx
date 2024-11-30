@@ -1,5 +1,4 @@
 "use client";
-import LogoutButton from "@/components/LogoutButton";
 import PageLoader from "@/components/PageLoader";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 
@@ -10,9 +9,7 @@ const HomePage = () => {
   ) : (
     <div>
       HomePage
-      <div>
-        <LogoutButton />
-      </div>
+      <div>logout</div>
     </div>
   );
 };

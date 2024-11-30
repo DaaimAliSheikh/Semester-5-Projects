@@ -12,8 +12,16 @@ import {
   Divider,
 } from "@mui/material";
 import DashboardIcon from "@mui/icons-material/Dashboard";
-import PersonIcon from "@mui/icons-material/Person";
-import SettingsIcon from "@mui/icons-material/Settings";
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar";
+import ChairIcon from "@mui/icons-material/Chair";
+import LocalOfferIcon from "@mui/icons-material/LocalOffer";
+import FastfoodIcon from "@mui/icons-material/Fastfood";
+import LocalDiningIcon from "@mui/icons-material/LocalDining";
+import LocationOnIcon from "@mui/icons-material/LocationOn";
+import BookmarkBorderIcon from "@mui/icons-material/BookmarkBorder";
+import { useMutation } from "react-query";
+import { logout } from "@/services/apiService";
+import { useAuthStore } from "@/stores/authStore";
 import LogoutIcon from "@mui/icons-material/Logout";
 
 const DrawerContent = ({
@@ -22,14 +30,51 @@ const DrawerContent = ({
   setMobileOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const pathname = usePathname(); // Get the current path
+  const setUser = useAuthStore((state) => state.setUser);
+
   const router = useRouter();
+  const logoutMutation = useMutation({
+    mutationFn: logout,
+    onSuccess: () => {
+      setUser(null);
+      router.push("/auth/login");
+    },
+    onError: (error) => {
+      console.error(error);
+    },
+  });
 
   // Menu items with corresponding routes
   const menuItems = [
-    { text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-    { text: "Profile", icon: <PersonIcon />, path: "/dashboard/profile" },
-    { text: "Settings", icon: <SettingsIcon />, path: "/dashboard/settings" },
-    { text: "Logout", icon: <LogoutIcon />, path: "/logout" },
+    { text: "Overview", icon: <DashboardIcon />, path: "/dashboard" },
+    {
+      text: "Bookings",
+      icon: <BookmarkBorderIcon />,
+      path: "/dashboard/bookings",
+    },
+    { text: "Venues", icon: <LocationOnIcon />, path: "/dashboard/venues" },
+    {
+      text: "Caterings",
+      icon: <LocalDiningIcon />,
+      path: "/dashboard/settings",
+    },
+    { text: "Dishes", icon: <FastfoodIcon />, path: "/dashboard/dishes" },
+    {
+      text: "Wedding Cars",
+      icon: <DirectionsCarIcon />,
+      path: "/dashboard/cars",
+    },
+    {
+      text: "Decorations",
+      icon: <ChairIcon />,
+      path: "/dashboard/decorations",
+    },
+    {
+      text: "Promo Codes",
+      icon: <LocalOfferIcon />,
+      path: "/dashboard/promos",
+    },
+    // { text: "Logout", icon: <LogoutIcon />, path: "/logout" },
   ];
   const handleListItemClick = () => {
     setMobileOpen(false);
@@ -51,8 +96,15 @@ const DrawerContent = ({
             <ListItemText primary={item.text} />
           </ListItemButton>
         ))}
+        <Divider />
+        <ListItemButton onClick={async () => await logoutMutation.mutate()}>
+          <ListItemIcon>
+            <LogoutIcon />
+          </ListItemIcon>
+          <ListItemText primary={"Logout"} />
+        </ListItemButton>
+        <Divider />
       </List>
-      <Divider />
     </Box>
   );
 };
