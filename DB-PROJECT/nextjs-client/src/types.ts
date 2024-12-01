@@ -53,3 +53,30 @@ export const createVenueSchema = z.object({
 });
 
 export type CreateVenueFormValues = z.infer<typeof createVenueSchema>;
+
+export interface CarModel {
+  car_id: string;
+  car_make: string;
+  car_model: string;
+  car_year: number;
+  car_rental_price: number;
+  car_image: string | null;
+  car_quantity: number;
+}
+
+export const createCarSchema = z.object({
+  car_make: z.string().min(1, "Car make is required"),
+  car_model: z.string().min(1, "Car model is required"),
+  car_year: z
+    .number()
+    .min(1886, "Car year must be at least 1886")
+    .max(
+      new Date().getFullYear() + 1,
+      `Car year cannot exceed ${new Date().getFullYear() + 1}`
+    ),
+  car_rental_price: z.number().min(0, "Rental price cannot be negative"),
+  car_image: z.instanceof(File).optional().nullable(),
+  car_quantity: z.number().min(0, "Quantity cannot be negative"),
+});
+
+export type CreateCarFormValues = z.infer<typeof createCarSchema>;

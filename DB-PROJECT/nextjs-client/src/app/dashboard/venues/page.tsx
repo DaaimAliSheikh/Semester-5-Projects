@@ -13,14 +13,16 @@ import {
   Fab,
   Stack,
   Backdrop,
+  IconButton,
+  CardHeader,
 } from "@mui/material";
 import Grid from "@mui/material/Grid2";
 import { Venue } from "@/types";
 import api from "@/services/apiService";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import AddIcon from "@mui/icons-material/Add";
 import CreateVenueForm from "@/components/CreateVenueForm";
-import DeleteForeverIcon from '@mui/icons-material/DeleteForever';
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 
 const fetchVenues = async (): Promise<Venue[]> => {
   const { data } = await api.get("/venues"); // Replace with your API endpoint.
@@ -29,7 +31,8 @@ const fetchVenues = async (): Promise<Venue[]> => {
 
 const Venues = () => {
   const [open, setOpen] = React.useState(false);
-  
+  const queryClient = useQueryClient();
+
   const handleOpen = () => {
     setOpen(true);
   };
@@ -40,7 +43,17 @@ const Venues = () => {
     isError,
   } = useQuery(["venues"], fetchVenues, {
     onError: (error: any) => {
-      console.error("Error fetching venues:", error.message);
+      console.error("Error fetching venues");
+    },
+  });
+
+  const { mutate } = useMutation({
+    mutationFn: async (venue_id: string) => {
+      const response = await api.delete(`/venues/${venue_id}`);
+      return response.data;
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries(["venues"]);
     },
   });
 
@@ -77,6 +90,17 @@ const Venues = () => {
           return (
             <Grid size={{ xs: 2, sm: 4, md: 4 }} key={venue.venue_id}>
               <Card sx={{ height: "100%" }}>
+                <CardHeader
+                  action={
+                    <IconButton
+                      onClick={async () => await mutate(venue.venue_id)}
+                      aria-label="delete"
+                    >
+                      <DeleteForeverIcon color="error" />
+                    </IconButton>
+                  }
+                  title={venue.venue_name}
+                />
                 {venue.venue_image && (
                   <CardMedia
                     component="img"
@@ -86,9 +110,6 @@ const Venues = () => {
                   />
                 )}
                 <CardContent>
-                  <Typography variant="h6" component="div">
-                    {venue.venue_name}
-                  </Typography>
                   <Typography variant="body2" color="text.secondary">
                     location: {venue.venue_address}
                   </Typography>

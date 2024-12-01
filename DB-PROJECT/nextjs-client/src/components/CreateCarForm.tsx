@@ -1,6 +1,8 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { createCarSchema, CreateCarFormValues } from "@/types";
+import { useMutation, useQueryClient } from "react-query";
 import {
   TextField,
   Button,
@@ -12,55 +14,56 @@ import {
   Stack,
   IconButton,
 } from "@mui/material";
-import CloseIcon from "@mui/icons-material/Close";
-import { createVenueSchema, CreateVenueFormValues } from "@/types";
-import Grid from "@mui/material/Grid2";
-import { useMutation, useQueryClient } from "react-query";
 import api from "@/services/apiService";
+import Grid from "@mui/material/Grid2";
+import CloseIcon from "@mui/icons-material/Close";
 
-const CreateVenueForm = ({
+const CreateCarForm = ({
   setOpen,
 }: {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const queryClient = useQueryClient();
+
   const {
     control,
     reset,
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<CreateVenueFormValues>({
-    resolver: zodResolver(createVenueSchema),
+  } = useForm<CreateCarFormValues>({
+    resolver: zodResolver(createCarSchema),
     defaultValues: {
-      venue_name: "",
-      venue_address: "",
-      venue_capacity: 1,
-      venue_price_per_day: 0,
-      venue_image: null,
+      car_make: "",
+      car_model: "",
+      car_year: 1886,
+      car_rental_price: 0,
+      car_quantity: 0,
+      car_image: null,
     },
   });
 
   const { mutate, isLoading, isError, isSuccess, error } = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await api.post("/venues", formData, {
+      const response = await api.post("/cars", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data;
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["venues"]);
+      queryClient.invalidateQueries(["cars"]);
     },
   });
 
-  const onSubmit = (data: CreateVenueFormValues) => {
+  const onSubmit = (data: CreateCarFormValues) => {
     const formData = new FormData();
-    formData.append("venue_name", data.venue_name);
-    formData.append("venue_address", data.venue_address);
-    formData.append("venue_capacity", data.venue_capacity.toString());
-    formData.append("venue_price_per_day", data.venue_price_per_day.toString());
-    if (data.venue_image) {
-      formData.append("venue_image", data.venue_image);
+    formData.append("car_make", data.car_make);
+    formData.append("car_model", data.car_model);
+    formData.append("car_year", data.car_year.toString());
+    formData.append("car_rental_price", data.car_rental_price.toString());
+    formData.append("car_quantity", data.car_quantity.toString());
+    if (data.car_image) {
+      formData.append("car_image", data.car_image);
     }
     mutate(formData);
   };
@@ -72,7 +75,7 @@ const CreateVenueForm = ({
           <CardContent>
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="h5" gutterBottom>
-                Add Venue
+                Add Car
               </Typography>
               <IconButton
                 onClick={() => {
@@ -85,50 +88,50 @@ const CreateVenueForm = ({
             </Stack>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Grid container spacing={3}>
-                {/* Venue Name */}
+                {/* Car Make */}
                 <Grid size={{ xs: 12 }}>
                   <Controller
-                    name="venue_name"
+                    name="car_make"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label="Venue Name"
-                        error={!!errors.venue_name}
-                        helperText={errors.venue_name?.message}
+                        label="Car Make"
+                        error={!!errors.car_make}
+                        helperText={errors.car_make?.message}
                       />
                     )}
                   />
                 </Grid>
 
-                {/* Venue Address */}
+                {/* Car Model */}
                 <Grid size={{ xs: 12 }}>
                   <Controller
-                    name="venue_address"
+                    name="car_model"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label="Venue Address"
-                        error={!!errors.venue_address}
-                        helperText={errors.venue_address?.message}
+                        label="Car Model"
+                        error={!!errors.car_model}
+                        helperText={errors.car_model?.message}
                       />
                     )}
                   />
                 </Grid>
 
-                {/* Venue Capacity */}
+                {/* Car Year */}
                 <Grid size={{ xs: 12 }}>
                   <Controller
-                    name="venue_capacity"
+                    name="car_year"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label="Venue Capacity"
+                        label="Car Year (1886 - Current Year)"
                         type="number"
                         value={field.value || ""} // Ensure value isn't `undefined` or `null`
                         onChange={(e) =>
@@ -136,23 +139,23 @@ const CreateVenueForm = ({
                             (e.target as HTMLInputElement).valueAsNumber || 0
                           )
                         } // Convert to number
-                        error={!!errors.venue_capacity}
-                        helperText={errors.venue_capacity?.message}
+                        error={!!errors.car_year}
+                        helperText={errors.car_year?.message}
                       />
                     )}
                   />
                 </Grid>
 
-                {/* Venue Price Per Day */}
+                {/* Car Rental Price */}
                 <Grid size={{ xs: 12 }}>
                   <Controller
-                    name="venue_price_per_day"
+                    name="car_rental_price"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label="Price Per Day"
+                        label="Rental Price"
                         type="number"
                         value={field.value || ""} // Ensure value isn't `undefined` or `null`
                         onChange={(e) =>
@@ -160,27 +163,51 @@ const CreateVenueForm = ({
                             (e.target as HTMLInputElement).valueAsNumber || 0
                           )
                         } // Convert to number
-                        error={!!errors.venue_price_per_day}
-                        helperText={errors.venue_price_per_day?.message}
+                        error={!!errors.car_rental_price}
+                        helperText={errors.car_rental_price?.message}
                       />
                     )}
                   />
                 </Grid>
 
-                {/* Venue Image */}
+                {/* Car Quantity */}
+                <Grid size={{ xs: 12 }}>
+                  <Controller
+                    name="car_quantity"
+                    control={control}
+                    render={({ field }) => (
+                      <TextField
+                        {...field}
+                        fullWidth
+                        label="Car Quantity"
+                        type="number"
+                        value={field.value || ""} // Ensure value isn't `undefined` or `null`
+                        onChange={(e) =>
+                          field.onChange(
+                            (e.target as HTMLInputElement).valueAsNumber || 0
+                          )
+                        } // Convert to number
+                        error={!!errors.car_quantity}
+                        helperText={errors.car_quantity?.message}
+                      />
+                    )}
+                  />
+                </Grid>
+
+                {/* Car Image */}
                 <Grid size={{ xs: 12 }}>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files?.[0]) {
-                        setValue("venue_image", e.target.files[0]);
+                        setValue("car_image", e.target.files[0]);
                       }
                     }}
                   />
-                  {errors.venue_image && (
+                  {errors.car_image && (
                     <Typography color="error" variant="body2">
-                      {errors.venue_image.message}
+                      {errors.car_image.message}
                     </Typography>
                   )}
                 </Grid>
@@ -194,7 +221,7 @@ const CreateVenueForm = ({
                     disabled={isLoading}
                     fullWidth
                   >
-                    {isLoading ? <CircularProgress size={24} /> : "Add Venue"}
+                    {isLoading ? <CircularProgress size={24} /> : "Add Car"}
                   </Button>
                 </Grid>
 
@@ -209,7 +236,7 @@ const CreateVenueForm = ({
                 )}
                 {isSuccess && (
                   <Grid size={{ xs: 12 }}>
-                    <Alert severity="success">Venue added successfully!</Alert>
+                    <Alert severity="success">Car added successfully!</Alert>
                   </Grid>
                 )}
               </Grid>
@@ -221,4 +248,4 @@ const CreateVenueForm = ({
   );
 };
 
-export default CreateVenueForm;
+export default CreateCarForm;
