@@ -17,6 +17,17 @@ user_service = UserService()
 # async def get_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
 #     return user
 
+
+@user_router.get("/", response_model=list[UserModel], status_code=status.HTTP_200_OK)
+async def get_all_users(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
+    users = await user_service.get_all_users(session)
+    return users
+
+
 @user_router.get("/me", response_model=UserModel, status_code=status.HTTP_200_OK)
 async def get_current_user(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
     return user

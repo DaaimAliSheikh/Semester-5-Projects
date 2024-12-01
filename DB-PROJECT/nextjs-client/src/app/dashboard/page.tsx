@@ -8,7 +8,7 @@ const Overview = () => {
 
   return (
     <>
-      <Typography variant="h5" sx={{ color: "primary.main" }}>
+      <Typography variant="h6" sx={{ color: "primary.main" }}>
         Welcome to the Dashboard {user?.username}
       </Typography>
       stats

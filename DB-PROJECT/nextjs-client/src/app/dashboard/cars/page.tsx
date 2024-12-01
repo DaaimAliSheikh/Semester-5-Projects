@@ -30,10 +30,10 @@ const fetchCars = async (): Promise<CarModel[]> => {
 const Cars = () => {
   const [open, setOpen] = React.useState(false);
 
-  const queryClient = useQueryClient();
   const handleOpen = () => {
     setOpen(true);
   };
+  const queryClient = useQueryClient();
 
   const { mutate } = useMutation({
     mutationFn: async (venue_id: string) => {

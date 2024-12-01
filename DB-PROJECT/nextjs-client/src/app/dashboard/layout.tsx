@@ -10,6 +10,7 @@ import {
   useTheme,
   useMediaQuery,
   Breadcrumbs,
+  Chip,
 } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import DrawerContent from "@/components/DrawerContent";
@@ -73,6 +74,12 @@ const Dashboard = ({ children }: { children: React.ReactNode }) => {
             }}
           >
             SHAADI.COM
+            <Chip
+              sx={{ ml: 2 }}
+              color="primary"
+              variant="filled"
+              label="Admin"
+            />
           </Typography>
           <AvatarProfile />
         </Toolbar>

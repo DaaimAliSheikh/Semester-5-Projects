@@ -8,6 +8,12 @@ from .utils import generate_passwd_hash
 
 class UserService:
 
+    async def get_all_users(self,  session: AsyncSession):
+        s = select(User)
+        result = await session.exec(s)
+        users = result.all()
+        return users
+
     async def get_user(self, user_id: UUID, session: AsyncSession):
         s = select(User).where(User.user_id == user_id)
         result = await session.exec(s)

@@ -2,15 +2,37 @@
 import * as React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
-import { Chip, MenuItem, Select, Typography } from "@mui/material";
+import {
+  Chip,
+  Fab,
+  MenuItem,
+  Select,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
+  Typography,
+} from "@mui/material";
+import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
+
 import DoneIcon from "@mui/icons-material/Done";
 import CloseIcon from "@mui/icons-material/Close";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
-import { useQuery } from "react-query";
+import { useQuery, useQueryClient } from "react-query";
 import api from "@/services/apiService";
 import { AdminBookingModel, CarReservationModel } from "@/types";
 
 const paginationModel = { page: 0, pageSize: 5 };
+
+const updateBooking = async (booking_id: string, status: string) => {
+  await api.patch("/bookings/" + booking_id, {
+    booking: { booking_status: status },
+    payment: {},
+  });
+};
+
+const deleteBooking = async (booking_id: string) => {
+  await api.delete("/bookings/" + booking_id);
+};
 
 const fetchBookings = async (): Promise<AdminBookingModel[]> => {
   const { data } = await api.get("/bookings");
@@ -45,9 +67,15 @@ const fetchBookings = async (): Promise<AdminBookingModel[]> => {
   return await Promise.all(bookingPromises);
 };
 
-export default function Bookings() {
-  const [selectedId, setSelectedId] = React.useState<number[]>([]);
+const actions = [
+  { icon: <DoneIcon color="success" />, name: "Confirm" },
+  { icon: <CloseIcon color="error" />, name: "Decline" },
+  { icon: <AutorenewIcon color="warning" />, name: "Set as pending" },
+];
 
+export default function Bookings() {
+  const [selectedId, setSelectedId] = React.useState<string[]>([]);
+  const queryClient = useQueryClient();
   const {
     data: bookings,
     isLoading,
@@ -138,7 +166,52 @@ export default function Bookings() {
         disableMultipleRowSelection
         sx={{ border: 0 }}
       />
-      <div>{selectedId}</div>
+      {selectedId.length > 0 && (
+        <>
+          <SpeedDial
+            ariaLabel="SpeedDial basic example"
+            sx={{
+              position: "fixed",
+              bottom: 16,
+              right: 16,
+            }}
+            icon={<SpeedDialIcon />}
+          >
+            {actions.map((action) => (
+              <SpeedDialAction
+                key={action.name}
+                icon={action.icon}
+                tooltipTitle={action.name}
+                onClick={async () => {
+                  await updateBooking(
+                    selectedId[0],
+                    action.name === "Confirm"
+                      ? "confirmed"
+                      : action.name == "Decline"
+                        ? "declined"
+                        : "pending"
+                  );
+                  queryClient.invalidateQueries(["bookings"]);
+                }}
+              />
+            ))}
+          </SpeedDial>
+          <Fab
+            sx={{
+              position: "fixed",
+              bottom: 16,
+              right: 90,
+            }}
+            onClick={async () => {
+              await deleteBooking(selectedId[0]);
+              queryClient.invalidateQueries(["bookings"]);
+            }}
+            aria-label="delete"
+          >
+            <DeleteForeverIcon color="error" />
+          </Fab>
+        </>
+      )}
     </Paper>
   );
 }

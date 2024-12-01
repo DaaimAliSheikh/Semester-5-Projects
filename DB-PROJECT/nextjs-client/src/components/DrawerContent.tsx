@@ -90,15 +90,28 @@ const DrawerContent = ({
             component={Link}
             href={item.path} // Use Next.js `Link` for navigation
             selected={pathname === item.path} // Highlight if the current path matches
+            sx={{
+              color: pathname === item.path ? "primary.main" : "inherit",
+            }}
             onClick={handleListItemClick}
           >
-            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemIcon
+              sx={{
+                color: pathname === item.path ? "primary.main" : "inherit",
+              }}
+            >
+              {item.icon}
+            </ListItemIcon>
             <ListItemText primary={item.text} />
           </ListItemButton>
         ))}
         <Divider />
         <ListItemButton onClick={async () => await logoutMutation.mutate()}>
-          <ListItemIcon>
+          <ListItemIcon
+            sx={{
+              color: "inherit",
+            }}
+          >
             <LogoutIcon />
           </ListItemIcon>
           <ListItemText primary={"Logout"} />
