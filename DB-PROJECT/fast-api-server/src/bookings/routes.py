@@ -12,8 +12,18 @@ booking_service = BookingService()
 
 
 @booking_router.get("/", response_model=list[BookingModel], status_code=status.HTTP_200_OK)
-async def get_all_bookings(session: AsyncSession = Depends(get_session)):
+async def get_all_bookings(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
+    if not user.is_admin:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
+        )
     bookings = await booking_service.get_all_bookings(session)
+    return bookings
+
+
+@booking_router.get("/me", response_model=list[BookingModel], status_code=status.HTTP_200_OK)
+async def get_my_bookings(user: UserModel = Depends(JWTAuthMiddleware), session: AsyncSession = Depends(get_session)):
+    bookings = await booking_service.get_my_bookings(user.user_id, session)
     return bookings
 
 

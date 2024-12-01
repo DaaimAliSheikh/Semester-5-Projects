@@ -18,6 +18,17 @@ class BookingService:
             new_bookings.append(booking)
         return new_bookings
 
+    async def get_my_bookings(self, user_id: UUID, session: AsyncSession):
+        query = select(Booking).where(Booking.user_id == user_id)
+        result = await session.exec(query)
+        bookings = result.all()
+        new_bookings = []
+        for booking in bookings:
+            # need to add array
+            await session.refresh(booking, ["user", "venue", "car_reservations", "decoration", "catering", "payment", "promo"])
+            new_bookings.append(booking)
+        return new_bookings
+
     async def get_booking(self, booking_id: UUID, session: AsyncSession):
         query = select(Booking).where(Booking.booking_id == booking_id)
         result = await session.exec(query)
@@ -68,7 +79,7 @@ class BookingService:
             if car:
                 setattr(car, "car_quantity", car.car_quantity + 1)
 
-        print("\n\n","awda", "\n\n")
+        print("\n\n", "awda", "\n\n")
         # all car reservations will be deleted because of on delete cascade relationship set in db/models
         await session.delete(booking)
         await session.commit()
