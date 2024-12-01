@@ -146,3 +146,44 @@ export const createCateringSchema = z.object({
 });
 
 export type CreateCateringFormValues = z.infer<typeof createCateringSchema>;
+
+export interface PromoModel {
+  promo_id: string;
+  promo_name: string;
+  promo_expiry: string; // ISO 8601 format string for datetime
+  promo_discount: number;
+}
+
+export const createPromoSchema = z.object({
+  promo_name: z.string().min(1, "Promo name is required"),
+  promo_expiry: z.date().refine((date) => date > new Date(), {
+    message: "Promo expiry date cannot be today or in the past",
+  }),
+  promo_discount: z
+    .number()
+    .gt(0, "Promo discount must be greater than 0")
+    .nullable(),
+});
+
+export type CreatePromoFormValues = z.infer<typeof createPromoSchema>;
+
+export interface CarReservationModel {
+  car_reservation_id: string;
+  car_id: string;
+  booking_id: string;
+}
+
+export interface AdminBookingModel {
+  id: string;
+  booking_date: string;
+  booking_event_date: string;
+  booking_guest_count: number;
+  booking_status: "pending" | "confirmed" | "declined";
+  user: string;
+  venue: string;
+  payment: string;
+  catering: string;
+  decoration: string;
+  promo: string;
+  cars: string[];
+}
