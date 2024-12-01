@@ -87,7 +87,6 @@ const DrawerContent = ({
         {menuItems.map((item) => (
           <ListItemButton
             key={item.text}
-            component={Link}
             href={item.path} // Use Next.js `Link` for navigation
             selected={pathname === item.path} // Highlight if the current path matches
             sx={{

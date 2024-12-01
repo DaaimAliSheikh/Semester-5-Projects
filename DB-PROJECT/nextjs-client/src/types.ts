@@ -187,3 +187,19 @@ export interface AdminBookingModel {
   promo: string;
   cars: string[];
 }
+
+enum PaymentMethod {
+  debit_card = "debit_card",
+  credit_card = "credit_card",
+  easypaisa = "easypaisa",
+  jazzcash = "jazzcash",
+  other = "other",
+}
+
+export interface PaymentModel {
+  paymentId: string;
+  amountPayed: number;
+  totalAmount: number;
+  paymentMethod: PaymentMethod;
+  discount: number;
+}
