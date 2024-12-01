@@ -9,12 +9,12 @@ class VenueReviewModel(BaseModel):
     venue_id: uuid.UUID
     user: UserModel  # to exclud password
     venue_review_text: str
-    venue_rating: float = Field(ge=1)
+    venue_rating: int = Field(ge=1)
     venue_review_created_at: datetime
 
 
 class CreateVenueReviewModel(BaseModel):
-    venue_rating: float = Field(ge=1)
+    venue_rating: int = Field(ge=1)
     venue_review_text: str
 
 

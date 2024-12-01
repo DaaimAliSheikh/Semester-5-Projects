@@ -56,7 +56,7 @@ const DrawerContent = ({
     {
       text: "Caterings",
       icon: <LocalDiningIcon />,
-      path: "/dashboard/settings",
+      path: "/dashboard/caterings",
     },
     { text: "Dishes", icon: <FastfoodIcon />, path: "/dashboard/dishes" },
     {

@@ -14,7 +14,6 @@ import {
 import MenuIcon from "@mui/icons-material/Menu";
 import DrawerContent from "@/components/DrawerContent";
 import AvatarProfile from "@/components/AvatarProfile";
-import Paper from "@mui/material/Paper";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import PageLoader from "@/components/PageLoader";
 import { usePathname, useRouter } from "next/navigation";
@@ -99,6 +98,8 @@ const Dashboard = ({ children }: { children: React.ReactNode }) => {
       <Box
         component="main"
         sx={{
+          display: "flex",
+          flexDirection: "column",
           flexGrow: 1,
           px: 2,
           ml: isMobile ? 0 : `${drawerWidth}px`,
@@ -115,8 +116,7 @@ const Dashboard = ({ children }: { children: React.ReactNode }) => {
               URLmappings[lastSegment].slice(1)}
           </Typography>
         </Breadcrumbs>
-        <Typography></Typography>
-        <Paper sx={{ width: "100%" }}>{children}</Paper>
+        {children}
       </Box>
     </Box>
   );
