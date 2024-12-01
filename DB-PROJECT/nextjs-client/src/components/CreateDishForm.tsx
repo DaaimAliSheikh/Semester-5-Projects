@@ -1,8 +1,6 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { createCarSchema, CreateCarFormValues } from "@/types";
-import { useMutation, useQueryClient } from "react-query";
 import {
   TextField,
   Button,
@@ -13,33 +11,37 @@ import {
   Typography,
   Stack,
   IconButton,
+  MenuItem,
+  Select,
+  InputLabel,
+  FormControl,
 } from "@mui/material";
-import api from "@/services/apiService";
-import Grid from "@mui/material/Grid2";
 import CloseIcon from "@mui/icons-material/Close";
+import { createDishSchema, CreateDishFormValues } from "@/types";
+import Grid from "@mui/material/Grid2";
+import { useMutation, useQueryClient } from "react-query";
+import api from "@/services/apiService";
 
-const CreateCarForm = ({
+const CreateDishForm = ({
   setOpen,
 }: {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   const queryClient = useQueryClient();
-
   const {
     control,
     reset,
     handleSubmit,
     setValue,
     formState: { errors },
-  } = useForm<CreateCarFormValues>({
-    resolver: zodResolver(createCarSchema),
+  } = useForm<CreateDishFormValues>({
+    resolver: zodResolver(createDishSchema),
     defaultValues: {
-      car_make: "",
-      car_model: "",
-      car_year: 1886,
-      car_rental_price: 0,
-      car_quantity: 0,
-      car_image: null,
+      dish_name: "",
+      dish_description: "",
+      dish_type: "starter",
+      dish_cost_per_serving: 0,
+      dish_image: null,
     },
   });
 
@@ -52,28 +54,30 @@ const CreateCarForm = ({
     error,
   } = useMutation({
     mutationFn: async (formData: FormData) => {
-      const response = await api.post("/cars", formData, {
+      const response = await api.post("/caterings/dishes", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
       return response.data;
     },
     onSettled: () => {
-      queryClient.invalidateQueries(["cars"]);
+      queryClient.invalidateQueries(["dishes"]);
     },
     onSuccess: () => {
       reset();
     },
   });
 
-  const onSubmit = (data: CreateCarFormValues) => {
+  const onSubmit = (data: CreateDishFormValues) => {
     const formData = new FormData();
-    formData.append("car_make", data.car_make);
-    formData.append("car_model", data.car_model);
-    formData.append("car_year", data.car_year.toString());
-    formData.append("car_rental_price", data.car_rental_price.toString());
-    formData.append("car_quantity", data.car_quantity.toString());
-    if (data.car_image) {
-      formData.append("car_image", data.car_image);
+    formData.append("dish_name", data.dish_name);
+    formData.append("dish_description", data.dish_description);
+    formData.append("dish_type", data.dish_type);
+    formData.append(
+      "dish_cost_per_serving",
+      data.dish_cost_per_serving.toString()
+    );
+    if (data.dish_image) {
+      formData.append("dish_image", data.dish_image);
     }
     mutate(formData);
   };
@@ -85,7 +89,7 @@ const CreateCarForm = ({
           <CardContent>
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="h5" gutterBottom>
-                Add Car
+                Add Dish
               </Typography>
               <IconButton
                 onClick={() => {
@@ -100,50 +104,80 @@ const CreateCarForm = ({
             </Stack>
             <form onSubmit={handleSubmit(onSubmit)}>
               <Grid container spacing={3}>
-                {/* Car Make */}
+                {/* Dish Name */}
                 <Grid size={{ xs: 12 }}>
                   <Controller
-                    name="car_make"
+                    name="dish_name"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label="Car Make"
-                        error={!!errors.car_make}
-                        helperText={errors.car_make?.message}
+                        label="Dish Name"
+                        error={!!errors.dish_name}
+                        helperText={errors.dish_name?.message}
                       />
                     )}
                   />
                 </Grid>
 
-                {/* Car Model */}
+                {/* Dish Description */}
                 <Grid size={{ xs: 12 }}>
                   <Controller
-                    name="car_model"
+                    name="dish_description"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label="Car Model"
-                        error={!!errors.car_model}
-                        helperText={errors.car_model?.message}
+                        label="Dish Description"
+                        error={!!errors.dish_description}
+                        helperText={errors.dish_description?.message}
                       />
                     )}
                   />
                 </Grid>
 
-                {/* Car Year */}
+                {/* Dish Type */}
                 <Grid size={{ xs: 12 }}>
                   <Controller
-                    name="car_year"
+                    name="dish_type"
+                    control={control}
+                    render={({ field }) => (
+                      <FormControl fullWidth error={!!errors.dish_type}>
+                        <InputLabel id="dish-type-label">Dish Type</InputLabel>
+                        <Select
+                          {...field}
+                          labelId="dish-type-label"
+                          id="dish-type"
+                          value={field.value || ""}
+                          onChange={(e) => field.onChange(e.target.value)}
+                          label="Dish Type"
+                        >
+                          <MenuItem value="starter">Starter</MenuItem>
+                          <MenuItem value="main">Main</MenuItem>
+                          <MenuItem value="dessert">Dessert</MenuItem>
+                        </Select>
+                        {errors.dish_type && (
+                          <Typography color="error" variant="body2">
+                            {errors.dish_type.message}
+                          </Typography>
+                        )}
+                      </FormControl>
+                    )}
+                  />
+                </Grid>
+
+                {/* Dish Cost Per Serving */}
+                <Grid size={{ xs: 12 }}>
+                  <Controller
+                    name="dish_cost_per_serving"
                     control={control}
                     render={({ field }) => (
                       <TextField
                         {...field}
                         fullWidth
-                        label="Car Year (1886 - Current Year)"
+                        label="Cost Per Serving"
                         type="number"
                         value={field.value || ""} // Ensure value isn't `undefined` or `null`
                         onChange={(e) =>
@@ -151,75 +185,27 @@ const CreateCarForm = ({
                             (e.target as HTMLInputElement).valueAsNumber || 0
                           )
                         } // Convert to number
-                        error={!!errors.car_year}
-                        helperText={errors.car_year?.message}
+                        error={!!errors.dish_cost_per_serving}
+                        helperText={errors.dish_cost_per_serving?.message}
                       />
                     )}
                   />
                 </Grid>
 
-                {/* Car Rental Price */}
-                <Grid size={{ xs: 12 }}>
-                  <Controller
-                    name="car_rental_price"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Rental Price"
-                        type="number"
-                        value={field.value || ""} // Ensure value isn't `undefined` or `null`
-                        onChange={(e) =>
-                          field.onChange(
-                            (e.target as HTMLInputElement).valueAsNumber || 0
-                          )
-                        } // Convert to number
-                        error={!!errors.car_rental_price}
-                        helperText={errors.car_rental_price?.message}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* Car Quantity */}
-                <Grid size={{ xs: 12 }}>
-                  <Controller
-                    name="car_quantity"
-                    control={control}
-                    render={({ field }) => (
-                      <TextField
-                        {...field}
-                        fullWidth
-                        label="Car Quantity"
-                        type="number"
-                        value={field.value || ""} // Ensure value isn't `undefined` or `null`
-                        onChange={(e) =>
-                          field.onChange(
-                            (e.target as HTMLInputElement).valueAsNumber || 0
-                          )
-                        } // Convert to number
-                        error={!!errors.car_quantity}
-                        helperText={errors.car_quantity?.message}
-                      />
-                    )}
-                  />
-                </Grid>
-
-                {/* Car Image */}
+                {/* Dish Image */}
                 <Grid size={{ xs: 12 }}>
                   <input
                     type="file"
                     accept="image/*"
                     onChange={(e) => {
                       if (e.target.files?.[0]) {
-                        setValue("car_image", e.target.files[0]);
+                        setValue("dish_image", e.target.files[0]);
                       }
                     }}
                   />
-                  {errors.car_image && (
+                  {errors.dish_image && (
                     <Typography color="error" variant="body2">
-                      {errors.car_image.message}
+                      {errors.dish_image.message}
                     </Typography>
                   )}
                 </Grid>
@@ -233,7 +219,7 @@ const CreateCarForm = ({
                     disabled={isLoading}
                     fullWidth
                   >
-                    {isLoading ? <CircularProgress size={24} /> : "Add Car"}
+                    {isLoading ? <CircularProgress size={24} /> : "Add Dish"}
                   </Button>
                 </Grid>
 
@@ -248,7 +234,7 @@ const CreateCarForm = ({
                 )}
                 {isSuccess && (
                   <Grid size={{ xs: 12 }}>
-                    <Alert severity="success">Car added successfully!</Alert>
+                    <Alert severity="success">Dish added successfully!</Alert>
                   </Grid>
                 )}
               </Grid>
@@ -260,4 +246,4 @@ const CreateCarForm = ({
   );
 };
 
-export default CreateCarForm;
+export default CreateDishForm;

@@ -41,7 +41,14 @@ const CreateVenueForm = ({
     },
   });
 
-  const { mutate, isLoading, isError, isSuccess, error } = useMutation({
+  const {
+    mutate,
+    isLoading,
+    isError,
+    isSuccess,
+    reset: resetMutate,
+    error,
+  } = useMutation({
     mutationFn: async (formData: FormData) => {
       const response = await api.post("/venues", formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -50,6 +57,9 @@ const CreateVenueForm = ({
     },
     onSettled: () => {
       queryClient.invalidateQueries(["venues"]);
+    },
+    onSuccess: () => {
+      reset();
     },
   });
 
@@ -77,6 +87,8 @@ const CreateVenueForm = ({
               <IconButton
                 onClick={() => {
                   setOpen(false);
+                  resetMutate();
+
                   reset();
                 }}
               >
