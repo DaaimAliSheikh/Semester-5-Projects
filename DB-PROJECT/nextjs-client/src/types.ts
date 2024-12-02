@@ -188,6 +188,45 @@ export interface AdminBookingModel {
   cars: string[];
 }
 
+export interface UserBookingModel {
+  booking_event_date: string;
+  booking_guest_count: 1;
+  user_id: string;
+  venue_id: string;
+  catering_id?: string;
+  decoration_id?: string;
+  promo_id?: string;
+  car_ids: string[];
+  payment_method: PaymentMethod;
+}
+
+export const createUserBookingSchema = z.object({
+  booking_event_date: z.date().refine((date) => date > new Date(), {
+    message: "Booking event date cannot be today or in the past",
+  }),
+  booking_guest_count: z
+    .number()
+    .int()
+    .min(1, "Guest count must be at least 1"),
+  user_id: z.string().uuid("Invalid user ID"),
+  venue_id: z.string().uuid("Invalid venue ID"),
+  catering_id: z.string().uuid("Invalid catering ID").optional(),
+  decoration_id: z.string().uuid("Invalid decoration ID").optional(),
+  promo_id: z.string().uuid("Invalid promo ID").optional(),
+  car_ids: z.array(z.string().uuid("Invalid car ID")),
+  payment_method: z.enum([
+    "debit_card",
+    "credit_card",
+    "easypaisa",
+    "jazzcash",
+    "other",
+  ]),
+});
+
+export type CreateUserBookingFormValues = z.infer<
+  typeof createUserBookingSchema
+>;
+
 enum PaymentMethod {
   debit_card = "debit_card",
   credit_card = "credit_card",

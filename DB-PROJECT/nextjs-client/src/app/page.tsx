@@ -3,6 +3,7 @@ import AvatarProfile from "@/components/AvatarProfile";
 import CarsCarousel from "@/components/CarsCarousel";
 import CateringCarousel from "@/components/CateringCarousel";
 import DecorationCarousel from "@/components/DecorationCarousel";
+import DishCarousel from "@/components/DishesCarousel";
 import PageLoader from "@/components/PageLoader";
 import VenueCarousel from "@/components/VenueCarousel";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -76,6 +77,7 @@ const HomePage = () => {
         <CateringCarousel />
         <DecorationCarousel />
         <CarsCarousel />
+        <DishCarousel />
       </Box>
     </Box>
   );

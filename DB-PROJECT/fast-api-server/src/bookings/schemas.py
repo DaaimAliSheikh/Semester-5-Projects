@@ -59,7 +59,6 @@ class CreatePaymentModel(BaseModel):
 class UpdateBookingModel(BaseModel):
     booking_event_date: datetime | None = None
     booking_guest_count: int | None = Field(ge=1, default=None)
-    booking_status: BookingStatus | None = None
     user_id: UUID | None = None
     venue_id: UUID | None = None
     catering_id: UUID | None = None

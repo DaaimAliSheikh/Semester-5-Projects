@@ -3,7 +3,7 @@ import * as React from "react";
 import { DataGrid, GridColDef } from "@mui/x-data-grid";
 import Paper from "@mui/material/Paper";
 import {
-  Backdrop,
+  Dialog,
   Chip,
   Fab,
   MenuItem,
@@ -17,6 +17,7 @@ import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DoneIcon from "@mui/icons-material/Done";
 import EditIcon from "@mui/icons-material/Edit";
 import AddIcon from "@mui/icons-material/Add";
+import SettingsIcon from "@mui/icons-material/Settings";
 
 import CloseIcon from "@mui/icons-material/Close";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
@@ -28,6 +29,7 @@ import PageLoader from "@/components/PageLoader";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { AppBar, Box, Button, Stack, Toolbar, useTheme } from "@mui/material";
 import BookingForm from "@/components/BookingForm";
+import { useRouter } from "next/navigation";
 
 // const updateBooking = async (booking_id: string, booking_data:) => {
 //   await api.patch("/bookings/" + booking_id, {
@@ -85,18 +87,14 @@ const actions = [
 const Bookings = () => {
   const [selectedId, setSelectedId] = React.useState<string[]>([]);
   const [open, setOpen] = React.useState(false);
+  const router = useRouter();
+
   const handleClose = () => {
     setOpen(false);
   };
-  const handleOpen = () => {
-    setOpen(true);
-  };
+
   const queryClient = useQueryClient();
-  const {
-    data: bookings,
-    isLoading,
-    error,
-  } = useQuery(["bookings"], fetchBookings, {
+  const { data: bookings } = useQuery(["bookings", "me"], fetchBookings, {
     onError: (error: any) => {
       console.error("Error fetching bookings");
     },
@@ -203,8 +201,13 @@ const Bookings = () => {
             />
           </Typography>
           <Stack gap={2} direction="row">
-            <Button sx={{ py: 0 }} size="small" variant="contained">
-              Bookings
+            <Button
+              sx={{ py: 0 }}
+              onClick={() => router.push("/")}
+              size="small"
+              variant="contained"
+            >
+              Home
             </Button>
 
             <AvatarProfile />
@@ -225,7 +228,10 @@ const Bookings = () => {
         }}
       >
         <Toolbar />
-        <Paper sx={{ height: 400, width: "100%" }}>
+        <Typography variant="h6" gutterBottom color="primary">
+          Bookings
+        </Typography>
+        <Paper elevation={0} sx={{ height: 400, width: "100%" }}>
           <DataGrid
             rows={bookings}
             columns={columns}
@@ -243,10 +249,10 @@ const Bookings = () => {
               right: 16,
             }}
             onClick={async () => {
-              ///create form
+              setOpen(true);
             }}
           >
-            <AddIcon color="success" />
+            <AddIcon color="primary" />
           </Fab>
           {selectedId.length > 0 && (
             <>
@@ -257,7 +263,7 @@ const Bookings = () => {
                   bottom: 16,
                   right: 90,
                 }}
-                icon={<SpeedDialIcon />}
+                icon={<SettingsIcon />}
               >
                 {actions.map((action) => (
                   <SpeedDialAction
@@ -270,6 +276,7 @@ const Bookings = () => {
                         setSelectedId([]);
                         queryClient.invalidateQueries("bookings");
                       } else if (action.name === "Edit") {
+                        ////open edit form
                       }
                     }}
                   />
@@ -278,13 +285,16 @@ const Bookings = () => {
             </>
           )}
         </Paper>
-        <Backdrop
+        <Dialog
           sx={(theme) => ({ color: "#fff", zIndex: theme.zIndex.drawer + 1 })}
           open={open}
-          onClick={handleClose}
+          onClose={handleClose}
         >
-          <BookingForm />
-        </Backdrop>
+          <BookingForm
+            loyaltyDiscount={Number(bookings?.length) > 1 ? 0.05 : 0}
+            setOpen={setOpen}
+          />
+        </Dialog>
       </Box>
     </Box>
   );

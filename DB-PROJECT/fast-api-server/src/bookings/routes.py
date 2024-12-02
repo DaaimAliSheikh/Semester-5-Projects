@@ -42,11 +42,7 @@ async def create_booking_with_payment(
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
-        )
-
+   
     booking = await booking_service.create_booking_with_payment(booking_and_payment_data, session)
     if not booking:
         raise HTTPException(

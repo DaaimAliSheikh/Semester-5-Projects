@@ -96,10 +96,7 @@ async def add_car_reservation(
     user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
-        )
+
     # Add car reservation using path parameters
     car_reservation = await car_service.add_car_reservation(car_id, booking_id, session)
     if not car_reservation:

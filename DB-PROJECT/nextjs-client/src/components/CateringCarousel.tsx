@@ -60,7 +60,7 @@ const CateringCarousel = () => {
         align="center"
         gutterBottom
       >
-        Our Catering Services Partners
+        Explore Our Catering Plans
       </Typography>
       <Box
         sx={{ overflow: "hidden", position: "relative", width: "100%" }}

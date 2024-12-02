@@ -67,8 +67,6 @@ const CreatePromoForm = ({
     },
   });
 
-  
-
   return (
     <Grid container justifyContent="center">
       <Grid size={{ xs: 12, sm: 8, md: 6 }}>
@@ -102,6 +100,7 @@ const CreatePromoForm = ({
                     render={({ field }) => (
                       <TextField
                         {...field}
+                        variant="filled"
                         fullWidth
                         label="Promo Name"
                         error={!!errors.promo_name}
@@ -129,7 +128,6 @@ const CreatePromoForm = ({
                             }}
                             slotProps={{
                               textField: {
-                                variant: "filled",
                                 size: "small",
                                 error: !!errors.promo_expiry,
                                 helperText: errors.promo_expiry?.message,
