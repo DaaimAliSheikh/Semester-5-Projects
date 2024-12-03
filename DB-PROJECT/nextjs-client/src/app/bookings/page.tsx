@@ -31,16 +31,8 @@ import { AppBar, Box, Button, Stack, Toolbar, useTheme } from "@mui/material";
 import BookingForm from "@/components/BookingForm";
 import { useRouter } from "next/navigation";
 
-// const updateBooking = async (booking_id: string, booking_data:) => {
-//   await api.patch("/bookings/" + booking_id, {
-//     booking: { booking_status: status },
-//     payment: {},
-//   });
-// };
 
-// const addBooking = async (booking_id: string) => {
-//     await api.delete("/bookings/" + booking_id);
-//   };
+
 const deleteBooking = async (booking_id: string) => {
   await api.delete("/bookings/" + booking_id);
 };
@@ -249,6 +241,7 @@ const Bookings = () => {
               right: 16,
             }}
             onClick={async () => {
+              setSelectedId([]);
               setOpen(true);
             }}
           >
@@ -265,22 +258,28 @@ const Bookings = () => {
                 }}
                 icon={<SettingsIcon />}
               >
-                {actions.map((action) => (
-                  <SpeedDialAction
-                    key={action.name}
-                    icon={action.icon}
-                    tooltipTitle={action.name}
-                    onClick={async () => {
-                      if (action.name === "Delete") {
-                        await deleteBooking(selectedId[0]);
-                        setSelectedId([]);
-                        queryClient.invalidateQueries("bookings");
-                      } else if (action.name === "Edit") {
-                        ////open edit form
-                      }
-                    }}
-                  />
-                ))}
+                {actions.map((action) => {
+                  return (
+                    (action.name === "Edit" &&
+                      bookings?.find((b) => b.id === selectedId[0])
+                        ?.booking_status != "pending") || (
+                      <SpeedDialAction
+                        key={action.name}
+                        icon={action.icon}
+                        tooltipTitle={action.name}
+                        onClick={async () => {
+                          if (action.name === "Delete") {
+                            await deleteBooking(selectedId[0]);
+                            setSelectedId([]);
+                            queryClient.invalidateQueries("bookings");
+                          } else if (action.name === "Edit") {
+                            setOpen(true);
+                          }
+                        }}
+                      />
+                    )
+                  );
+                })}
               </SpeedDial>
             </>
           )}
@@ -291,6 +290,7 @@ const Bookings = () => {
           onClose={handleClose}
         >
           <BookingForm
+            bookingID={selectedId.length > 0 ? selectedId[0] : null}
             loyaltyDiscount={Number(bookings?.length) > 1 ? 0.05 : 0}
             setOpen={setOpen}
           />

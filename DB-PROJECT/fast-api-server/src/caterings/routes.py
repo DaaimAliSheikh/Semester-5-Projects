@@ -29,6 +29,17 @@ async def get_all_dishes(session: AsyncSession = Depends(get_session)):
     dishes = await catering_service.get_all_dishes(session)
     return dishes
 
+# Get dish
+
+
+@catering_router.get("/dishes/{dish_id}", response_model=DishModel, status_code=status.HTTP_200_OK)
+async def get_dish(dish_id: UUID, session: AsyncSession = Depends(get_session)):
+    dish = await catering_service.get_dish(dish_id, session)
+    if not dish:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Dish not found")
+    return dish
+
 
 # Add a new catering
 @catering_router.post("/", response_model=CateringModel, status_code=status.HTTP_201_CREATED)

@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { User } from "./stores/authStore";
 
 export interface VenueReview {
   venue_review_id: string;
@@ -188,6 +189,21 @@ export interface AdminBookingModel {
   cars: string[];
 }
 
+export interface BookingModel {
+  booking_id: string;
+  booking_date: string;
+  booking_event_date: string;
+  booking_guest_count: number;
+  booking_status: "pending" | "confirmed" | "declined";
+  user: User;
+  venue: Venue;
+  payment: PaymentModel;
+  catering: CateringModel;
+  decoration: DecorationModel;
+  promo: PromoModel;
+  car_reservations: CarReservationModel[];
+}
+
 export interface UserBookingModel {
   booking_event_date: string;
   booking_guest_count: 1;
@@ -239,6 +255,6 @@ export interface PaymentModel {
   paymentId: string;
   amountPayed: number;
   totalAmount: number;
-  paymentMethod: PaymentMethod;
+  payment_method: PaymentMethod;
   discount: number;
 }

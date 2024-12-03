@@ -14,7 +14,7 @@ import { useQuery } from "react-query";
 
 // Fetch dish data
 const fetchDishes = async (): Promise<DishModel[]> => {
-  const { data } = await api.get("/dishes"); // Replace with your API endpoint for dishes
+  const { data } = await api.get("/caterings/dishes"); // Replace with your API endpoint for dishes
   return data;
 };
 

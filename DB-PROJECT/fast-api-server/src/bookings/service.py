@@ -96,6 +96,7 @@ class BookingService:
 
         # print("\n\n", booking, "\n\n")
         # Update the booking fields
+        print("\n\n", booking_and_payment_data, "\n\n")
         for field, value in booking_and_payment_data.booking.model_dump(exclude_unset=True).items():
             setattr(booking, field, value)
             # Update the payment fields

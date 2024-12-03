@@ -109,13 +109,9 @@ async def add_car_reservation(
 @car_router.delete("/reservations/{car_reservation_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def remove_car_reservation(
     car_reservation_id: UUID,
-    user: UserModel = Depends(JWTAuthMiddleware),
     session: AsyncSession = Depends(get_session),
 ):
-    if not user.is_admin:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN, detail="Admin access required"
-        )
+
     # Remove car reservation using car_reservation_id
     deleted_reservation = await car_service.remove_car_reservation(car_reservation_id, session)
     if not deleted_reservation:

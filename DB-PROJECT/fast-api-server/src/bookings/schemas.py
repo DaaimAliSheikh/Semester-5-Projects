@@ -72,6 +72,8 @@ class UpdateBookingModel(BaseModel):
         if not (value > datetime.now().replace(tzinfo=None)):
             raise ValueError("booking_event_date cannot be in the past")
         return value
+    
+
 
 
 class UpdatePaymentModel(BaseModel):

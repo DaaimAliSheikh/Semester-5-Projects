@@ -408,7 +408,7 @@ class Booking(SQLModel, table=True):
             "promo.promo_id", ondelete="CASCADE"), nullable=True)
     )
     promo: "Promo" = Relationship(back_populates="bookings")
-    # check to see if booking date is not in the past
+
     # check to see if booking event date is not in the past
     # check constraint for booking_guest_count, there must be atleast 1 guest
     # check constraint for booking_total_cost
@@ -418,8 +418,8 @@ class Booking(SQLModel, table=True):
         "venue_id",
         text('DATE(booking_event_date)'),
         unique=True
-    ), CheckConstraint("booking_date > CURRENT_TIMESTAMP", name="check_booking_date"), CheckConstraint("booking_event_date > CURRENT_TIMESTAMP",
-                                                                                                       name="check_booking_event_date"), CheckConstraint("booking_guest_count > 0", name="check_booking_guest_count")])
+    ),  CheckConstraint("booking_event_date > CURRENT_TIMESTAMP",
+                        name="check_booking_event_date"), CheckConstraint("booking_guest_count > 0", name="check_booking_guest_count")])
 
     # unique index for venue and booking_event_date
 # PostgreSQL doesn't allow functions in UNIQUE constraints, but it does allow them in unique indexes

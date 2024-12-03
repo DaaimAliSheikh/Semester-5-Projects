@@ -10,8 +10,9 @@ import {
   DecorationModel,
   Venue,
   DishModel,
+  BookingModel,
 } from "@/types";
-import { useMutation, useQueryClient } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import {
   TextField,
   Button,
@@ -46,9 +47,11 @@ import { useAuthStore } from "@/stores/authStore";
 const CreateBookingForm = ({
   setOpen,
   loyaltyDiscount,
+  bookingID,
 }: {
   setOpen: React.Dispatch<React.SetStateAction<boolean>>;
   loyaltyDiscount: number;
+  bookingID: string | null;
 }) => {
   const queryClient = useQueryClient();
   const user = useAuthStore((state) => state.user);
@@ -58,6 +61,7 @@ const CreateBookingForm = ({
   const [decorations, setDecorations] = useState<DecorationModel[]>([]);
   const [promos, setPromos] = useState<PromoModel[]>([]);
   const [cars, setCars] = useState<CarModel[]>([]);
+  const [booking, setBooking] = useState<BookingModel | null>(null);
   const [dishesMappings, setDishesMappings] = useState<
     { catering_id: string; dishes: DishModel[] }[]
   >([]);
@@ -91,6 +95,28 @@ const CreateBookingForm = ({
         setDecorations(decorationsData);
         setPromos(promosData);
         setCars(carsData);
+        if (bookingID) {
+          const bookingData: BookingModel = await fetchData(
+            "/bookings/" + bookingID
+          );
+          setValue("booking_guest_count", bookingData.booking_guest_count);
+          setValue(
+            "booking_event_date",
+            new Date(bookingData.booking_event_date)
+          );
+          setValue("user_id", bookingData.user.user_id);
+          setValue("venue_id", bookingData.venue.venue_id);
+          setValue("catering_id", bookingData.catering?.catering_id);
+          setValue("decoration_id", bookingData.decoration?.decoration_id);
+          setValue("promo_id", bookingData.promo?.promo_id);
+          setValue("payment_method", bookingData.payment.payment_method);
+          setValue(
+            "car_ids",
+            bookingData.car_reservations.map((r) => r.car_id)
+          );
+          setBooking(bookingData);
+          return bookingData;
+        }
         const dishesMappings = await Promise.all(
           cateringsData.map(async (catering: CateringModel) => {
             return {
@@ -114,6 +140,7 @@ const CreateBookingForm = ({
     handleSubmit,
     formState: { errors },
     getValues,
+    setValue,
     watch,
   } = useForm<CreateUserBookingFormValues>({
     resolver: zodResolver(createUserBookingSchema),
@@ -152,9 +179,18 @@ const CreateBookingForm = ({
           amount_payed: costAfterDiscount,
         },
       };
-      console.log(body);
-      const response = await api.post("/bookings", body);
+      const response = bookingID
+        ? await api.patch("/bookings/" + bookingID, body)
+        : await api.post("/bookings", body);
 
+      console.log("sending data: ", response.data);
+      //delete old car reservations
+      booking?.car_reservations.forEach(async (reservation) => {
+        await api.delete(
+          `/cars/reservations/${reservation.car_reservation_id}`
+        );
+      });
+      //add new car reservations
       car_ids.forEach(async (car_id) => {
         await api.post(`/cars/${car_id}/${response.data.booking_id}`);
       });
@@ -164,7 +200,7 @@ const CreateBookingForm = ({
       queryClient.invalidateQueries(["bookings", "me"]);
     },
     onSuccess: () => {
-      reset();
+      if (bookingID) setOpen(false);
     },
     onError: (e: any) => {
       console.error(e);
@@ -244,7 +280,7 @@ const CreateBookingForm = ({
           <CardContent>
             <Stack direction="row" justifyContent="space-between">
               <Typography variant="h5" gutterBottom>
-                Create Booking
+                {bookingID ? "Update Booking" : "Create Booking"}
               </Typography>
               <IconButton
                 onClick={() => {
@@ -258,7 +294,10 @@ const CreateBookingForm = ({
             </Stack>
             <form
               onSubmit={handleSubmit(
-                async (data: CreateUserBookingFormValues) => await mutate(data)
+                async (data: CreateUserBookingFormValues) => {
+                  console.log(data);
+                  await mutate(data);
+                }
               )}
             >
               <Grid container spacing={2}>
@@ -633,6 +672,8 @@ const CreateBookingForm = ({
                   >
                     {isLoading ? (
                       <CircularProgress size={24} />
+                    ) : bookingID ? (
+                      "Update Booking"
                     ) : (
                       "Create Booking"
                     )}
@@ -650,7 +691,9 @@ const CreateBookingForm = ({
                 {isSuccess && (
                   <Grid size={{ xs: 12 }}>
                     <Alert severity="success">
-                      Booking created successfully!
+                      {bookingID
+                        ? "Booking updated successfully!"
+                        : "Booking created successfully!"}
                     </Alert>
                   </Grid>
                 )}
