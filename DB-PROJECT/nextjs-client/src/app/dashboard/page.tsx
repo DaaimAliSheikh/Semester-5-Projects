@@ -41,9 +41,9 @@ export default function Overview() {
           <TableHead>
             <TableRow>
               <TableCell>User ID</TableCell>
-              <TableCell align="right">Username</TableCell>
-              <TableCell align="right">Email</TableCell>
-              <TableCell align="right">Role</TableCell>
+              <TableCell >Username</TableCell>
+              <TableCell >Email</TableCell>
+              <TableCell >Role</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -58,8 +58,8 @@ export default function Overview() {
                 <TableCell component="th" scope="row">
                   {user.username}
                 </TableCell>
-                <TableCell align="right">{user.email}</TableCell>
-                <TableCell align="right">
+                <TableCell >{user.email}</TableCell>
+                <TableCell >
                   {user.is_admin ? (
                     <Chip label="Admin" />
                   ) : (

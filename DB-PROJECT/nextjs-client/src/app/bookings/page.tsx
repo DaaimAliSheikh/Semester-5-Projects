@@ -170,7 +170,7 @@ const Bookings = () => {
         </Select>
       ),
     },
-    { field: "user", headerName: "user", width: 160 },
+    
     { field: "venue", headerName: "venue", width: 160 },
     {
       field: "payment",
