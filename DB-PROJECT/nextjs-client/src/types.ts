@@ -4,7 +4,7 @@ import { User } from "./stores/authStore";
 export interface VenueReview {
   venue_review_id: string;
   venue_id: string;
-  user: { id: string; username: string }; // Assuming the `UserModel` includes an `id` and `username`.
+  user: { user_id: string; username: string }; //  `UserModel` includes an `user_id` and `username`.
   venue_review_text: string;
   venue_rating: number;
   venue_review_created_at: string;

@@ -11,7 +11,16 @@ class VenueService:
         query = select(Venue)
         result = await session.exec(query)
         venues = result.all()
-        return venues
+        new_venues = []
+        for venue in venues:
+            # need to add array
+            await session.refresh(venue, ["venue_reviews"])
+
+            for review in venue.venue_reviews:
+                await session.refresh(review, ["user"])
+
+            new_venues.append(venue)
+        return new_venues
 
     async def get_venue(self, venue_id: UUID, session: AsyncSession):
         query = select(Venue).where(Venue.venue_id == venue_id)
