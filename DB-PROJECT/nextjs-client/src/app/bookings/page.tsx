@@ -12,6 +12,10 @@ import {
   SpeedDialAction,
   SpeedDialIcon,
   Typography,
+  Link,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import DeleteForeverIcon from "@mui/icons-material/DeleteForever";
 import DoneIcon from "@mui/icons-material/Done";
@@ -23,7 +27,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import AutorenewIcon from "@mui/icons-material/Autorenew";
 import { useQuery, useQueryClient } from "react-query";
 import api from "@/services/apiService";
-import { AdminBookingModel, CarReservationModel } from "@/types";
+import { AdminBookingModel, CarReservationModel, PaymentModel } from "@/types";
 import AvatarProfile from "@/components/AvatarProfile";
 import PageLoader from "@/components/PageLoader";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
@@ -31,44 +35,10 @@ import { AppBar, Box, Button, Stack, Toolbar, useTheme } from "@mui/material";
 import BookingForm from "@/components/BookingForm";
 import { useRouter } from "next/navigation";
 
-
-
 const deleteBooking = async (booking_id: string) => {
   await api.delete("/bookings/" + booking_id);
 };
 
-const fetchBookings = async (): Promise<AdminBookingModel[]> => {
-  const { data } = await api.get("/bookings/me");
-
-  const bookingPromises = data.map(async (booking: any) => {
-    const reservationPromises = booking.car_reservations.map(
-      async (reservation: CarReservationModel) => {
-        const { data } = await api.get(`/cars/${reservation.car_id}`);
-        return data;
-      }
-    );
-    const cars = await Promise.all(reservationPromises);
-
-    return {
-      ...booking,
-      booking_date: new Date(booking.booking_date).toLocaleDateString(),
-      booking_event_date: new Date(
-        booking.booking_event_date
-      ).toLocaleDateString(),
-      id: booking.booking_id,
-      venue: booking.venue.venue_name,
-      user: booking.user.username,
-      payment: booking.payment?.payment_id || "",
-      catering: booking.catering?.catering_name || "",
-      decoration: booking.decoration?.decoration_name || "",
-      promo: booking.promo?.promo_name || "",
-      cars: cars.map(
-        (car) => car.car_make + " " + car.car_model + " " + car.car_year
-      ),
-    };
-  });
-  return await Promise.all(bookingPromises);
-};
 const paginationModel = { page: 0, pageSize: 5 };
 
 const actions = [
@@ -79,18 +49,65 @@ const actions = [
 const Bookings = () => {
   const [selectedId, setSelectedId] = React.useState<string[]>([]);
   const [open, setOpen] = React.useState(false);
+  const [payments, setPayments] = React.useState<
+    { booking_id: string; payment: PaymentModel }[]
+  >([]);
+  const [paymentOpen, setPaymentOpen] = React.useState(false);
   const router = useRouter();
 
   const handleClose = () => {
     setOpen(false);
   };
 
+  const handlePaymentClose = () => {
+    setPaymentOpen(false);
+  };
   const queryClient = useQueryClient();
-  const { data: bookings } = useQuery(["bookings", "me"], fetchBookings, {
-    onError: (error: any) => {
-      console.error("Error fetching bookings");
+  const { data: bookings } = useQuery(
+    ["bookings", "me"],
+    async (): Promise<AdminBookingModel[]> => {
+      const { data } = await api.get("/bookings/me");
+      let localpayments: { booking_id: string; payment: PaymentModel }[] = [];
+      const bookingPromises = data.map(async (booking: any) => {
+        localpayments.push({
+          booking_id: booking.booking_id,
+          payment: booking.payment,
+        });
+        const reservationPromises = booking.car_reservations.map(
+          async (reservation: CarReservationModel) => {
+            const { data } = await api.get(`/cars/${reservation.car_id}`);
+            return data;
+          }
+        );
+        const cars = await Promise.all(reservationPromises);
+
+        return {
+          ...booking,
+          booking_date: new Date(booking.booking_date).toLocaleDateString(),
+          booking_event_date: new Date(
+            booking.booking_event_date
+          ).toLocaleDateString(),
+          id: booking.booking_id,
+          venue: booking.venue.venue_name,
+          user: booking.user.username,
+          payment: booking.payment?.payment_id || "",
+          catering: booking.catering?.catering_name || "",
+          decoration: booking.decoration?.decoration_name || "",
+          promo: booking.promo?.promo_name || "",
+          cars: cars.map(
+            (car) => car.car_make + " " + car.car_model + " " + car.car_year
+          ),
+        };
+      });
+      setPayments(localpayments);
+      return await Promise.all(bookingPromises);
     },
-  });
+    {
+      onError: (error: any) => {
+        console.error("Error fetching bookings");
+      },
+    }
+  );
 
   const handleSelectionChange = (id: any) => {
     setSelectedId(id);
@@ -155,7 +172,16 @@ const Bookings = () => {
     },
     { field: "user", headerName: "user", width: 160 },
     { field: "venue", headerName: "venue", width: 160 },
-    { field: "payment", headerName: "payment ID", width: 320 },
+    {
+      field: "payment",
+      headerName: "payment ID",
+      width: 320,
+      renderCell: (params) => (
+        <Link onClick={() => setPaymentOpen(true)} href="#" variant="body2">
+          {params.value}
+        </Link>
+      ),
+    },
     { field: "catering", headerName: "catering", width: 160 },
     { field: "decoration", headerName: "decoration", width: 160 },
     { field: "promo", headerName: "promo", width: 160 },
@@ -294,6 +320,78 @@ const Bookings = () => {
             loyaltyDiscount={Number(bookings?.length) > 1 ? 0.05 : 0}
             setOpen={setOpen}
           />
+        </Dialog>
+        <Dialog
+          sx={(theme) => ({
+            color: "#fff",
+            zIndex: theme.zIndex.drawer + 1,
+          })}
+          open={paymentOpen}
+          onClose={handlePaymentClose}
+        >
+          <Typography
+            sx={{ p: 2, fontWeight: "bold" }}
+            variant="h6"
+            color="primary"
+          >
+            {"Payment Info for Booking ID: " + selectedId[0]}
+          </Typography>
+          <List
+            sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}
+          >
+            <ListItem>
+              <ListItemText
+                primary="Payment ID"
+                secondary={
+                  payments?.find(
+                    ({ booking_id }) => booking_id === selectedId[0]
+                  )?.payment.payment_id
+                }
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Total Amount"
+                secondary={
+                  payments?.find(
+                    ({ booking_id }) => booking_id === selectedId[0]
+                  )?.payment.total_amount
+                }
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Discount"
+                secondary={
+                  (payments?.find(
+                    ({ booking_id }) => booking_id === selectedId[0]
+                  )?.payment.discount || 0) *
+                    100 +
+                  "%"
+                }
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Amount Payed"
+                secondary={
+                  payments?.find(
+                    ({ booking_id }) => booking_id === selectedId[0]
+                  )?.payment.amount_payed
+                }
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Payment Method"
+                secondary={
+                  payments?.find(
+                    ({ booking_id }) => booking_id === selectedId[0]
+                  )?.payment.payment_method
+                }
+              />
+            </ListItem>
+          </List>
         </Dialog>
       </Box>
     </Box>

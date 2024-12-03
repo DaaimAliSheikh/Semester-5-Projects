@@ -252,9 +252,9 @@ enum PaymentMethod {
 }
 
 export interface PaymentModel {
-  paymentId: string;
-  amountPayed: number;
-  totalAmount: number;
+  payment_id: string;
+  amount_payed: number;
+  total_amount: number;
   payment_method: PaymentMethod;
   discount: number;
 }
