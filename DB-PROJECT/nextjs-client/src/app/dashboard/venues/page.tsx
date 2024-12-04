@@ -42,7 +42,7 @@ const Venues = () => {
     isLoading,
     isError,
   } = useQuery(["venues"], fetchVenues, {
-    onError: (error: any) => {
+    onError: () => {
       console.error("Error fetching venues");
     },
   });

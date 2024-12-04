@@ -6,9 +6,7 @@ import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
 import Alert from "@mui/material/Alert";
 import Button from "@mui/material/Button";
-import Checkbox from "@mui/material/Checkbox";
 import FormControl from "@mui/material/FormControl";
-import FormControlLabel from "@mui/material/FormControlLabel";
 import FormHelperText from "@mui/material/FormHelperText";
 import InputLabel from "@mui/material/InputLabel";
 import Link from "@mui/material/Link";
@@ -55,7 +53,7 @@ function SignUpPage(): React.JSX.Element {
     onSuccess: (user) => {
       setUser(user);
     },
-    onError: (error) => {
+    onError: () => {
       setOpen(true);
     },
   });
@@ -68,7 +66,7 @@ function SignUpPage(): React.JSX.Element {
         },
       });
     },
-    [router, setError]
+    [router, setError,signupMutation]
   );
 
   return (

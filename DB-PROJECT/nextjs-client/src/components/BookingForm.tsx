@@ -1,4 +1,4 @@
-import React, { use, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
@@ -12,7 +12,7 @@ import {
   DishModel,
   BookingModel,
 } from "@/types";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import {
   TextField,
   Button,
@@ -168,7 +168,7 @@ const CreateBookingForm = ({
     mutationFn: async (data: CreateUserBookingFormValues) => {
       const { car_ids, payment_method, ...rest } = data;
       const filteredObject = Object.fromEntries(
-        Object.entries(rest).filter(([_, value]) => value !== undefined)
+        Object.entries(rest).filter(([, value]) => value !== undefined)
       );
       const body = {
         booking: filteredObject,
@@ -202,6 +202,7 @@ const CreateBookingForm = ({
     onSuccess: () => {
       if (bookingID) setOpen(false);
     },
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     onError: (e: any) => {
       console.error(e);
     },
@@ -370,7 +371,7 @@ const CreateBookingForm = ({
                           onChange={(e) => field.onChange(e.target.value)}
                           label="Venue"
                         >
-                          {venues.map((venue: any) => (
+                          {venues.map((venue) => (
                             <MenuItem
                               key={venue.venue_id}
                               value={venue.venue_id}
@@ -404,7 +405,7 @@ const CreateBookingForm = ({
                           onChange={(e) => field.onChange(e.target.value)}
                           label="Catering"
                         >
-                          {caterings.map((catering: any) => (
+                          {caterings.map((catering) => (
                             <MenuItem
                               key={catering.catering_id}
                               value={catering.catering_id}
@@ -435,7 +436,7 @@ const CreateBookingForm = ({
                   >
                     {dishesMappings
                       .find(
-                        (dishMapping: any) =>
+                        (dishMapping) =>
                           dishMapping.catering_id === getValues("catering_id")
                       )
                       ?.dishes.map((dish) => (
@@ -468,7 +469,7 @@ const CreateBookingForm = ({
                           onChange={(e) => field.onChange(e.target.value)}
                           label="Decoration"
                         >
-                          {decorations.map((decoration: any) => (
+                          {decorations.map((decoration) => (
                             <MenuItem
                               key={decoration.decoration_id}
                               value={decoration.decoration_id}
@@ -502,7 +503,7 @@ const CreateBookingForm = ({
                           onChange={(e) => field.onChange(e.target.value)}
                           label="Promo"
                         >
-                          {promos.map((promo: any) => (
+                          {promos.map((promo) => (
                             <MenuItem
                               key={promo.promo_id}
                               value={promo.promo_id}
@@ -553,7 +554,7 @@ const CreateBookingForm = ({
                           onChange={(e) => field.onChange(e.target.value)}
                           label="Cars"
                         >
-                          {cars.map((car: any) => (
+                          {cars.map((car) => (
                             <MenuItem key={car.car_id} value={car.car_id}>
                               {`${car.car_make} ${car.car_model} ${car.car_year}`}
                             </MenuItem>

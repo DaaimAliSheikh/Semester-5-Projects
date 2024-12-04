@@ -43,7 +43,7 @@ export default function AvatarProfile() {
         await logoutMutation.mutate();
       },
     };
-  }, []);
+  }, [logoutMutation]);
 
   return (
     <AuthenticationContext.Provider value={authentication}>

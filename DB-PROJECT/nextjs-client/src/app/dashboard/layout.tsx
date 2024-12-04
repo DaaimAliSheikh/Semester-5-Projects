@@ -17,7 +17,7 @@ import DrawerContent from "@/components/DrawerContent";
 import AvatarProfile from "@/components/AvatarProfile";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import PageLoader from "@/components/PageLoader";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 
 const URLmappings: { [key: string]: string } = {
   dashboard: "Overview",

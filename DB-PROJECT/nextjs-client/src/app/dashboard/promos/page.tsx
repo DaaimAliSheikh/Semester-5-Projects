@@ -48,7 +48,7 @@ const Promos = () => {
     isLoading,
     error,
   } = useQuery(["promos"], fetchPromos, {
-    onError: (error: any) => {
+    onError: () => {
       console.error("Error fetching promos");
     },
   });

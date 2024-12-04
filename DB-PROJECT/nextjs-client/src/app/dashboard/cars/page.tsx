@@ -49,7 +49,7 @@ const Cars = () => {
     isLoading,
     error,
   } = useQuery(["cars"], fetchCars, {
-    onError: (error: any) => {
+    onError: () => {
       console.error("Error fetching cars");
     },
   });

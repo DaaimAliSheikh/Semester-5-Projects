@@ -18,17 +18,16 @@ import { EyeIcon, EyeClosed as EyeSlashIcon } from "lucide-react";
 // import { EyeSlash as EyeSlashIcon } from "@phosphor-icons/react/dist/ssr/EyeSlash";
 import { Controller, useForm } from "react-hook-form";
 import { z as zod } from "zod";
-import { Dancing_Script } from "next/font/google";
 import { login } from "@/services/apiService";
 import { useMutation } from "react-query";
 import { useAuthStore, User } from "@/stores/authStore";
 import { Snackbar } from "@mui/material";
 
-const ds = Dancing_Script({
-  weight: ["400"],
-  subsets: ["latin"],
-  variable: "--font-ds",
-});
+// const ds = Dancing_Script({
+//   weight: ["400"],
+//   subsets: ["latin"],
+//   variable: "--font-ds",
+// });
 
 const schema = zod.object({
   email: zod.string().min(1, { message: "Email is required" }).email(),
@@ -42,7 +41,7 @@ const defaultValues = {
   password: "Secret1",
 } satisfies Values;
 
-export function SignInPage(): React.JSX.Element {
+ function SigninPage() {
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [open, setOpen] = React.useState<boolean>(false);
 
@@ -59,7 +58,7 @@ export function SignInPage(): React.JSX.Element {
     onSuccess: (user) => {
       setUser(user);
     },
-    onError: (error) => {
+    onError: () => {
       setOpen(true);
     },
   });
@@ -72,7 +71,7 @@ export function SignInPage(): React.JSX.Element {
         },
       });
     },
-    [router, setError]
+    [router, setError, loginMutation]
   );
 
   return (
@@ -189,4 +188,4 @@ export function SignInPage(): React.JSX.Element {
     </Stack>
   );
 }
-export default SignInPage;
+export default SigninPage;

@@ -67,7 +67,7 @@ const Caterings = () => {
     isLoading,
     error,
   } = useQuery(["caterings"], fetchCaterings, {
-    onError: (error: any) => {
+    onError: () => {
       console.error("Error fetching caterings");
     },
   });

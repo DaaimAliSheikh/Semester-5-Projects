@@ -20,7 +20,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import dayjs, { Dayjs } from "dayjs";
+import dayjs from "dayjs";
 
 const CreatePromoForm = ({
   setOpen,
@@ -33,7 +33,6 @@ const CreatePromoForm = ({
     control,
     reset,
     handleSubmit,
-    setValue,
     formState: { errors },
   } = useForm<CreatePromoFormValues>({
     resolver: zodResolver(createPromoSchema),
@@ -62,6 +61,7 @@ const CreatePromoForm = ({
     onSuccess: () => {
       reset();
     },
+    /* eslint-disable @typescript-eslint/no-explicit-any */
     onError: (e: any) => {
       console.error(e);
     },
@@ -179,6 +179,7 @@ const CreatePromoForm = ({
 
                 {/* Success/Error Messages */}
                 {isError && (
+                  /* es-lint-disable-next-line @typescript-eslint/no-explicit-any */
                   <Grid size={{ xs: 12 }}>
                     <Alert severity="error">
                       {(error as any)?.response?.data?.detail ||

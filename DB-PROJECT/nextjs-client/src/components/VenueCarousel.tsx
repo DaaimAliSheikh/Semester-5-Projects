@@ -19,7 +19,7 @@ const VenueCarousel = () => {
   const [emblaRef, emblaApi] = useEmblaCarousel({ loop: false });
 
   const { data: venues } = useQuery(["venues"], fetchVenues, {
-    onError: (error: any) => {
+    onError: () => {
       console.error("Error fetching venues");
     },
   });

@@ -29,7 +29,7 @@ const DishCarousel = () => {
     isLoading,
     isError,
   } = useQuery(["dishes"], fetchDishes, {
-    onError: (error: any) => {
+    onError: () => {
       console.error("Error fetching dishes");
     },
   });

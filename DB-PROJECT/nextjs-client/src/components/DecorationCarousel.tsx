@@ -29,7 +29,7 @@ const DecorationCarousel = () => {
     isLoading,
     isError,
   } = useQuery(["decorations"], fetchDecorations, {
-    onError: (error: any) => {
+    onError: () => {
       console.error("Error fetching decorations");
     },
   });

@@ -1,5 +1,5 @@
 import { Venue } from "@/types";
-import { useEffect, useState } from "react";
+import {  useState } from "react";
 
 import {
   Box,
@@ -9,7 +9,6 @@ import {
   CardHeader,
   CardMedia,
   Dialog,
-  Paper,
   Rating,
   Stack,
   TextField,
@@ -17,7 +16,6 @@ import {
 } from "@mui/material";
 
 import Accordion from "@mui/material/Accordion";
-import AccordionActions from "@mui/material/AccordionActions";
 import AccordionSummary from "@mui/material/AccordionSummary";
 import AccordionDetails from "@mui/material/AccordionDetails";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
@@ -174,7 +172,7 @@ const VenueCard = ({
               Reviews
             </AccordionSummary>
             {venue.venue_reviews.map((review) => (
-              <AccordionDetails>
+              <AccordionDetails key={review.venue_review_id}>
                 <Stack
                   direction="row"
                   justifyContent={"space-between"}

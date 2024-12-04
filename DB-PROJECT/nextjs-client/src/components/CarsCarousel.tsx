@@ -29,7 +29,10 @@ const CarsCarousel = () => {
     isLoading,
     isError,
   } = useQuery(["cars"], fetchCars, {
-    onError: (error: any) => {
+   
+    onError: (
+      error: any // eslint-disable-line @typescript-eslint/no-explicit-any
+    ) => {
       console.error("Error fetching cars", error);
     },
   });

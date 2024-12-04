@@ -166,9 +166,13 @@ const CreateCateringForm = ({
 
                 {/* Success/Error Messages */}
                 {isError && (
+                 
                   <Grid size={{ xs: 12 }}>
                     <Alert severity="error">
-                      {(error as any)?.response?.data?.detail ||
+                      
+                      {(
+                        error as any  // eslint-disable-line @typescript-eslint/no-explicit-any
+                      )?.response?.data?.detail ||
                         "An error occurred"}
                     </Alert>
                   </Grid>

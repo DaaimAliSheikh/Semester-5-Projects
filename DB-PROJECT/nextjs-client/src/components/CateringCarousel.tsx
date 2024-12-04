@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import {
   Box,
@@ -45,7 +45,10 @@ const CateringCarousel = () => {
     isLoading,
     isError,
   } = useQuery(["caterings"], fetchCateringsAndDishes, {
-    onError: (error: any) => {
+
+    onError: (
+      error: any // eslint-disable-line @typescript-eslint/no-explicit-any
+    ) => {
       console.error("Error fetching caterings", error);
     },
   });

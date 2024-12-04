@@ -10,7 +10,6 @@ import {
   Select,
   SpeedDial,
   SpeedDialAction,
-  SpeedDialIcon,
   Typography,
   Link,
   List,
@@ -67,7 +66,8 @@ const Bookings = () => {
     ["bookings", "me"],
     async (): Promise<AdminBookingModel[]> => {
       const { data } = await api.get("/bookings/me");
-      let localpayments: { booking_id: string; payment: PaymentModel }[] = [];
+      const localpayments: { booking_id: string; payment: PaymentModel }[] = [];
+      /* eslint-disable @typescript-eslint/no-explicit-any */
       const bookingPromises = data.map(async (booking: any) => {
         localpayments.push({
           booking_id: booking.booking_id,
@@ -103,11 +103,12 @@ const Bookings = () => {
       return await Promise.all(bookingPromises);
     },
     {
-      onError: (error: any) => {
+      onError: () => {
         console.error("Error fetching bookings");
       },
     }
   );
+  /* eslint-disable @typescript-eslint/no-explicit-any */
 
   const handleSelectionChange = (id: any) => {
     setSelectedId(id);
@@ -170,7 +171,7 @@ const Bookings = () => {
         </Select>
       ),
     },
-    
+
     { field: "venue", headerName: "venue", width: 160 },
     {
       field: "payment",
