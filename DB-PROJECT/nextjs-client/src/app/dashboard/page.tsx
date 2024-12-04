@@ -33,7 +33,7 @@ export default function Overview() {
   }, []);
   return (
     <>
-      <Typography variant="h6" color="primary">
+      <Typography variant="h5" color="primary">
         Users
       </Typography>
       <TableContainer component={Paper}>
@@ -41,9 +41,9 @@ export default function Overview() {
           <TableHead>
             <TableRow>
               <TableCell>User ID</TableCell>
-              <TableCell >Username</TableCell>
-              <TableCell >Email</TableCell>
-              <TableCell >Role</TableCell>
+              <TableCell>Username</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Role</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -58,8 +58,8 @@ export default function Overview() {
                 <TableCell component="th" scope="row">
                   {user.username}
                 </TableCell>
-                <TableCell >{user.email}</TableCell>
-                <TableCell >
+                <TableCell>{user.email}</TableCell>
+                <TableCell>
                   {user.is_admin ? (
                     <Chip label="Admin" />
                   ) : (
@@ -71,9 +71,18 @@ export default function Overview() {
           </TableBody>
         </Table>
       </TableContainer>
+      <Box gap={4} sx={{ py: 4 }}>
+        <Typography variant="h5" color="primary">
+          Total Earnings:
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          {"$ " +payments.reduce((sum, payment) => sum + payment.amount_payed, 0)}
+        </Typography>
+      </Box>
+      <Divider />
       <Stack flexDirection="row">
         <Box>
-          <Typography sx={{ mt: 2 }} variant="h6" color="primary">
+          <Typography sx={{ mt: 2 }} variant="h5" color="primary">
             Payment Methods Distribution
           </Typography>
           <BarChart
@@ -94,19 +103,19 @@ export default function Overview() {
               {
                 data: [
                   payments.filter(
-                    ({ paymentMethod }) => paymentMethod === "debit_card"
+                    ({ payment_method }) => payment_method === "debit_card"
                   ).length,
                   payments.filter(
-                    ({ paymentMethod }) => paymentMethod === "credit_card"
+                    ({ payment_method }) => payment_method === "credit_card"
                   ).length,
                   payments.filter(
-                    ({ paymentMethod }) => paymentMethod === "easypaisa"
+                    ({ payment_method }) => payment_method === "easypaisa"
                   ).length,
                   payments.filter(
-                    ({ paymentMethod }) => paymentMethod === "jazzcash"
+                    ({ payment_method }) => payment_method === "jazzcash"
                   ).length,
                   payments.filter(
-                    ({ paymentMethod }) => paymentMethod === "other"
+                    ({ payment_method }) => payment_method === "other"
                   ).length,
                 ],
               },
@@ -117,7 +126,7 @@ export default function Overview() {
         </Box>
         <Divider orientation="vertical" sx={{ mr: 2 }} />
         <Box>
-          <Typography sx={{ my: 2 }} variant="h6" color="primary">
+          <Typography sx={{ my: 2 }} variant="h5" color="primary">
             Booking Status Distribution
           </Typography>
           <PieChart
