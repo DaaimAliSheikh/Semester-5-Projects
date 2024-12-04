@@ -5,6 +5,7 @@ import CateringCarousel from "@/components/CateringCarousel";
 import DecorationCarousel from "@/components/DecorationCarousel";
 import DishCarousel from "@/components/DishesCarousel";
 import PageLoader from "@/components/PageLoader";
+import PromosCarousel from "@/components/PromosCarousel";
 import VenueCarousel from "@/components/VenueCarousel";
 import { useAuthGuard } from "@/hooks/useAuthGuard";
 import {
@@ -70,6 +71,8 @@ const HomePage = () => {
           p: 2,
           bgcolor: theme.palette.background.default,
           minHeight: "100vh",
+          maxWidth: "100%",
+          py: 6,
         }}
       >
         <Toolbar />
@@ -78,6 +81,7 @@ const HomePage = () => {
         <DecorationCarousel />
         <CarsCarousel />
         <DishCarousel />
+        <PromosCarousel />
       </Box>
     </Box>
   );

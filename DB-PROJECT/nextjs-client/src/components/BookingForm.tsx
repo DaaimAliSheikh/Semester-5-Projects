@@ -242,7 +242,8 @@ const BookingForm = ({
     // Calculate cost after discount
     const promo_id = getValues("promo_id");
     const promo = promos.find((p) => p.promo_id === promo_id);
-    const promo_discount = promo?.promo_discount || 0 + loyaltyDiscount;
+    let promo_discount = promo?.promo_discount || 0 + loyaltyDiscount;
+    promo_discount = Math.min(promo_discount, 1);
     const calculatedCostAfterDiscount = Math.ceil(
       calculatedTotal * (1 - promo_discount)
     );
@@ -376,7 +377,27 @@ const BookingForm = ({
                               key={venue.venue_id}
                               value={venue.venue_id}
                             >
-                              {venue.venue_name}
+                              <Stack
+                                flexDirection="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                              >
+                                {`${venue.venue_name}`}
+                                <Typography
+                                  color="text.secondary"
+                                  variant="caption"
+                                  sx={{ ml: 2 }}
+                                >
+                                  {"$ " + venue.venue_price_per_day}
+                                </Typography>
+                                <Typography
+                                  color="text.secondary"
+                                  variant="caption"
+                                  sx={{ ml: 2 }}
+                                >
+                                  {"capacity: " + venue.venue_capacity}
+                                </Typography>
+                              </Stack>
                             </MenuItem>
                           ))}
                         </Select>
@@ -477,7 +498,20 @@ const BookingForm = ({
                               key={decoration.decoration_id}
                               value={decoration.decoration_id}
                             >
-                              {decoration.decoration_name}
+                              <Stack
+                                flexDirection="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                              >
+                                {`${decoration.decoration_name}`}
+                                <Typography
+                                  color="text.secondary"
+                                  variant="caption"
+                                  sx={{ ml: 2 }}
+                                >
+                                  {"$ " + decoration.decoration_price}
+                                </Typography>
+                              </Stack>
                             </MenuItem>
                           ))}
                           <MenuItem value={""}>
@@ -518,6 +552,7 @@ const BookingForm = ({
                               }
                             >
                               {`${promo.promo_name} `}
+                              {`${promo.promo_discount * 100}%   `}
                               <Chip
                                 sx={{ ml: 2 }}
                                 variant="outlined"
@@ -565,7 +600,20 @@ const BookingForm = ({
                         >
                           {cars.map((car) => (
                             <MenuItem key={car.car_id} value={car.car_id}>
-                              {`${car.car_make} ${car.car_model} ${car.car_year}`}
+                              <Stack
+                                flexDirection="row"
+                                justifyContent="space-between"
+                                alignItems="center"
+                              >
+                                {`${car.car_make} ${car.car_model} ${car.car_year}`}
+                                <Typography
+                                  color="text.secondary"
+                                  variant="caption"
+                                  sx={{ ml: 2 }}
+                                >
+                                  {"$ " + car.car_rental_price}
+                                </Typography>
+                              </Stack>
                             </MenuItem>
                           ))}
                         </Select>

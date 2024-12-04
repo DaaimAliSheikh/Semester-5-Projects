@@ -38,10 +38,10 @@ type Values = zod.infer<typeof schema>;
 
 const defaultValues = {
   email: "daaim@shaadi.com",
-  password: "Secret1",
+  password: "abc_123",
 } satisfies Values;
 
- function SigninPage() {
+function SigninPage() {
   const [showPassword, setShowPassword] = React.useState<boolean>();
   const [open, setOpen] = React.useState<boolean>(false);
 
@@ -163,13 +163,24 @@ const defaultValues = {
       <Alert color="warning">
         Use{" "}
         <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          admin
+          daaim@shaadi.com
         </Typography>{" "}
         with password{" "}
         <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
-          admin
+          abc_123
         </Typography>{" "}
         to log in as admin user
+      </Alert>
+      <Alert color="success">
+        Use{" "}
+        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
+          daaimalisheikh23@gmail.com
+        </Typography>{" "}
+        with password{" "}
+        <Typography component="span" sx={{ fontWeight: 700 }} variant="inherit">
+          abc_123
+        </Typography>{" "}
+        to log in as normal user
       </Alert>
       <Snackbar
         open={open}

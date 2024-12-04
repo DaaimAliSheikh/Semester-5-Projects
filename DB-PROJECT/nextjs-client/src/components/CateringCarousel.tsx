@@ -24,17 +24,16 @@ const fetchCateringsAndDishes = async (): Promise<
 > => {
   const { data } = await api.get("/caterings"); // Replace with your API endpoint
   const cateringPromises = data.map(async (catering: CateringModel) => {
-    const dishPromises = catering.catering_menu_items.map(
-      async (item) => {
-        const { data } = await api.get(`/caterings/dishes/${item.dish_id}`);
-        return data;
-      }
-    );
+    const dishPromises = catering.catering_menu_items.map(async (item) => {
+      const { data } = await api.get(`/caterings/dishes/${item.dish_id}`);
+      return data;
+    });
 
     const dishes = await Promise.all(dishPromises);
     return { catering, dishes };
   });
-  return await Promise.all(cateringPromises);
+  const cateringWithDishes = await Promise.all(cateringPromises);
+  return cateringWithDishes;
 };
 
 const CateringCarousel = () => {
@@ -45,7 +44,6 @@ const CateringCarousel = () => {
     isLoading,
     isError,
   } = useQuery(["caterings"], fetchCateringsAndDishes, {
-
     onError: (
       error: any // eslint-disable-line @typescript-eslint/no-explicit-any
     ) => {
@@ -89,7 +87,9 @@ const CateringCarousel = () => {
                   key={cateringAndDishes.catering.catering_id}
                   sx={{ flex: "0 0 30%", padding: 2, border: "1px solid #ccc" }}
                 >
-                  <CardHeader title={cateringAndDishes.catering.catering_name} />
+                  <CardHeader
+                    title={cateringAndDishes.catering.catering_name}
+                  />
                   {cateringAndDishes.catering.catering_image && (
                     <CardMedia
                       component="img"
@@ -104,19 +104,30 @@ const CateringCarousel = () => {
                       {cateringAndDishes.catering.catering_description}
                     </Typography>
                     <Box mt={2}>
-                      <Typography variant="h6" color="text.primary">
-                        Menu Items:
-                      </Typography>
-                      <ul>
-                        {cateringAndDishes.dishes.map((dish, index) => (
-                          <li key={index}>
-                            <Typography variant="body2" color="text.secondary">
-                              {dish.dish_name}: ${dish.dish_cost_per_serving} per
-                              serving
-                            </Typography>
-                          </li>
-                        ))}
-                      </ul>
+                      {cateringAndDishes.dishes.length > 0 ? (
+                        <>
+                          <Typography variant="h6" color="text.primary">
+                            Menu Items:
+                          </Typography>
+                          <ul>
+                            {cateringAndDishes.dishes.map((dish, index) => (
+                              <li key={index}>
+                                <Typography
+                                  variant="body2"
+                                  color="text.secondary"
+                                >
+                                  {dish.dish_name}: $
+                                  {dish.dish_cost_per_serving} per serving
+                                </Typography>
+                              </li>
+                            ))}
+                          </ul>
+                        </>
+                      ) : (
+                        <Typography variant="h6" color="text.primary">
+                          No Menu Items
+                        </Typography>
+                      )}
                     </Box>
                   </CardContent>
                 </Card>

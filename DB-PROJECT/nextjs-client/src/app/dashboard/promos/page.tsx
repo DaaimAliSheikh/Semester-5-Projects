@@ -106,7 +106,7 @@ const Promos = () => {
                   {new Date(promo.promo_expiry).toLocaleDateString()}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Discount: {promo.promo_discount}%
+                  Discount: {promo.promo_discount * 100}%
                 </Typography>
               </CardContent>
             </Card>

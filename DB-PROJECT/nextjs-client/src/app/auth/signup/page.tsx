@@ -66,7 +66,7 @@ function SignUpPage(): React.JSX.Element {
         },
       });
     },
-    [router, setError,signupMutation]
+    [router, setError, signupMutation]
   );
 
   return (
@@ -146,6 +146,9 @@ function SignUpPage(): React.JSX.Element {
           </Button>
         </Stack>
       </form>
+      <Alert color="warning">
+        Admin access can only be granted at the database level
+      </Alert>
       <Snackbar
         open={open}
         autoHideDuration={6000}
