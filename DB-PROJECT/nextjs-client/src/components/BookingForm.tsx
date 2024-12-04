@@ -568,7 +568,6 @@ const BookingForm = ({
                               {`${car.car_make} ${car.car_model} ${car.car_year}`}
                             </MenuItem>
                           ))}
-                        
                         </Select>
                         {errors.car_ids && (
                           <Typography color="error" variant="body2">
@@ -695,7 +694,8 @@ const BookingForm = ({
                 {isError && (
                   <Grid size={{ xs: 12 }}>
                     <Alert severity="error">
-                      {"An error occurred: " + error?.response?.data?.detail}
+                      {`Could not ${bookingID ? "update" : "create"} booking: ` +
+                        error?.response?.data?.detail}
                     </Alert>
                   </Grid>
                 )}

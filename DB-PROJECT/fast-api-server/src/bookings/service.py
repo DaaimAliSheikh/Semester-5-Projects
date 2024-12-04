@@ -1,7 +1,8 @@
+from fastapi import HTTPException, status
 from sqlalchemy import func
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from src.db.models import Booking, Payment, Car
+from src.db.models import Booking, Payment, Car, Venue
 from uuid import UUID
 from src.bookings.schemas import CreateBookingWithPaymentModel, UpdateBookingWithPaymentModel
 
@@ -44,6 +45,15 @@ class BookingService:
         booking = result.first()
         if booking:
             return None
+
+        query2 = select(Venue).where(Venue.venue_id ==
+                                     booking_and_payment_data.booking.venue_id)
+        result2 = await session.exec(query2)
+        venue = result2.first()
+        if venue and booking_and_payment_data.booking.booking_guest_count > venue.venue_capacity:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST, detail="Guest count exceeds venue capacity"
+            )
 
         # Create the Booking object
         new_booking = Booking(

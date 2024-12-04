@@ -94,7 +94,8 @@ export const createDecorationSchema = z.object({
   decoration_price: z.number().min(0, "Price cannot be negative"),
   decoration_description: z
     .string()
-    .min(5, "Description must be at least 5 characters long"),
+    .min(5, "Description must be at least 5 characters long")
+    .max(255, "description too long"),
   decoration_image: z.instanceof(File).optional().nullable(),
 });
 
@@ -119,7 +120,8 @@ export const createDishSchema = z.object({
   dish_name: z.string().min(1, "Dish name is required"),
   dish_description: z
     .string()
-    .min(5, "Description must be at least 5 characters long"),
+    .min(5, "Description must be at least 5 characters long")
+    .max(255, "description too long"),
   dish_type: z.enum(["starter", "main", "dessert"]),
   dish_cost_per_serving: z
     .number()
@@ -142,7 +144,8 @@ export const createCateringSchema = z.object({
   catering_name: z.string().min(1, "Catering name is required"),
   catering_description: z
     .string()
-    .min(5, "Description must be at least 5 characters long"),
+    .min(5, "Description must be at least 5 characters long")
+    .max(255, "description too long"),
   catering_image: z.instanceof(File).optional().nullable(),
 });
 
@@ -160,10 +163,7 @@ export const createPromoSchema = z.object({
   promo_expiry: z.date().refine((date) => date > new Date(), {
     message: "Promo expiry date cannot be today or in the past",
   }),
-  promo_discount: z
-    .number()
-    .gt(0, "Promo discount must be greater than 0")
-    .nullable(),
+  promo_discount: z.number().min(0.01).max(0.99, "Discount must be between 0 and 1"),
 });
 
 export type CreatePromoFormValues = z.infer<typeof createPromoSchema>;
