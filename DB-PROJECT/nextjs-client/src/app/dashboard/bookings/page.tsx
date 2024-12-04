@@ -56,10 +56,7 @@ export default function Bookings() {
     setPaymentOpen(false);
   };
   const queryClient = useQueryClient();
-  const {
-    data: bookings,
- 
-  } = useQuery(
+  const { data: bookings } = useQuery(
     ["bookings"],
     async (): Promise<AdminBookingModel[]> => {
       const { data } = await api.get("/bookings");
@@ -174,7 +171,14 @@ export default function Bookings() {
       headerName: "payment ID",
       width: 320,
       renderCell: (params) => (
-        <Link onClick={() => setPaymentOpen(true)} href="#" variant="body2">
+        <Link
+          onClick={(e) => {
+            if (selectedId.length > 0) e.stopPropagation();
+            setPaymentOpen(true);
+          }}
+          href="#"
+          variant="body2"
+        >
           {params.value}
         </Link>
       ),

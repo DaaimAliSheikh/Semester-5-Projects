@@ -44,7 +44,7 @@ import { DatePicker } from "@mui/x-date-pickers/DatePicker";
 import dayjs from "dayjs";
 import { useAuthStore } from "@/stores/authStore";
 
-const CreateBookingForm = ({
+const BookingForm = ({
   setOpen,
   loyaltyDiscount,
   bookingID,
@@ -149,9 +149,9 @@ const CreateBookingForm = ({
       booking_guest_count: 1,
       user_id: user?.user_id || "", // Default user ID
       venue_id: "",
-      catering_id: undefined,
-      decoration_id: undefined,
-      promo_id: undefined,
+      catering_id: "",
+      decoration_id: "",
+      promo_id: "",
       car_ids: [],
       payment_method: "debit_card",
     },
@@ -168,7 +168,7 @@ const CreateBookingForm = ({
     mutationFn: async (data: CreateUserBookingFormValues) => {
       const { car_ids, payment_method, ...rest } = data;
       const filteredObject = Object.fromEntries(
-        Object.entries(rest).filter(([, value]) => value !== undefined)
+        Object.entries(rest).filter(([, value]) => value !== "")
       );
       const body = {
         booking: filteredObject,
@@ -381,7 +381,7 @@ const CreateBookingForm = ({
                           ))}
                         </Select>
                         {errors.venue_id && (
-                          <Typography color="error" variant="body2">
+                          <Typography color="error" variant="caption">
                             {errors.venue_id.message}
                           </Typography>
                         )}
@@ -413,6 +413,9 @@ const CreateBookingForm = ({
                               {catering.catering_name}
                             </MenuItem>
                           ))}
+                          <MenuItem value={""}>
+                            <em>None</em>
+                          </MenuItem>
                         </Select>
                         {errors.catering_id && (
                           <Typography color="error" variant="body2">
@@ -477,6 +480,9 @@ const CreateBookingForm = ({
                               {decoration.decoration_name}
                             </MenuItem>
                           ))}
+                          <MenuItem value={""}>
+                            <em>None</em>
+                          </MenuItem>
                         </Select>
                         {errors.decoration_id && (
                           <Typography color="error" variant="body2">
@@ -528,6 +534,9 @@ const CreateBookingForm = ({
                               />
                             </MenuItem>
                           ))}
+                          <MenuItem value={""}>
+                            <em>None</em>
+                          </MenuItem>
                         </Select>
                         {errors.promo_id && (
                           <Typography color="error" variant="body2">
@@ -559,6 +568,7 @@ const CreateBookingForm = ({
                               {`${car.car_make} ${car.car_model} ${car.car_year}`}
                             </MenuItem>
                           ))}
+                        
                         </Select>
                         {errors.car_ids && (
                           <Typography color="error" variant="body2">
@@ -707,4 +717,4 @@ const CreateBookingForm = ({
   );
 };
 
-export default CreateBookingForm;
+export default BookingForm;

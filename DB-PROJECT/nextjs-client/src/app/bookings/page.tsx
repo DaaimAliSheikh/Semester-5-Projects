@@ -178,7 +178,14 @@ const Bookings = () => {
       headerName: "payment ID",
       width: 320,
       renderCell: (params) => (
-        <Link onClick={() => setPaymentOpen(true)} href="#" variant="body2">
+        <Link
+          onClick={(e) => {
+            if (selectedId.length > 0) e.stopPropagation();
+            setPaymentOpen(true);
+          }}
+          href="#"
+          variant="body2"
+        >
           {params.value}
         </Link>
       ),

@@ -225,11 +225,11 @@ export const createUserBookingSchema = z.object({
     .int()
     .min(1, "Guest count must be at least 1"),
   user_id: z.string().uuid("Invalid user ID"),
-  venue_id: z.string().uuid("Invalid venue ID"),
-  catering_id: z.string().uuid("Invalid catering ID").optional(),
-  decoration_id: z.string().uuid("Invalid decoration ID").optional(),
-  promo_id: z.string().uuid("Invalid promo ID").optional(),
-  car_ids: z.array(z.string().uuid("Invalid car ID")),
+  venue_id: z.string().min(1, { message: "Venue is required" }),
+  catering_id: z.string().optional(),
+  decoration_id: z.string().optional(),
+  promo_id: z.string().optional(),
+  car_ids: z.array(z.string()),
   payment_method: z.enum([
     "debit_card",
     "credit_card",

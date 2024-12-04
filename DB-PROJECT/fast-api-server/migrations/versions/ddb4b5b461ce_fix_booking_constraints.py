@@ -167,7 +167,12 @@ def upgrade() -> None:
             WHERE car_id = NEW.car_id;
             RETURN NEW;
         ELSE
-            RAISE EXCEPTION 'Cannot reserve car: insufficient quantity';
+            RAISE EXC
+            
+            
+            
+            
+            EPTION 'Cannot reserve car: insufficient quantity';
         END IF;
     END;
     $$ LANGUAGE plpgsql;
