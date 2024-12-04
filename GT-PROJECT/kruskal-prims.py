@@ -1,5 +1,45 @@
+import networkx as nx
+import numpy as np
+import matplotlib.pyplot as plt
 import time
 import tracemalloc
+import streamlit as st
+
+# function to draw minimum spanning tree
+
+
+def draw_graph(mst_matrix, label):
+    mst_matrix = np.array(mst_matrix)
+    # Create a graph from the matrix using NetworkX
+    G = nx.Graph()
+
+    # Add nodes
+    num_nodes = mst_matrix.shape[0]
+    G.add_nodes_from(range(num_nodes))
+
+    # Add edges with weights
+    for i in range(num_nodes):
+        for j in range(i+1, num_nodes):  # to avoid duplicate edges
+            weight = mst_matrix[i][j]
+            if weight > 0:  # only add edges with weight > 0
+                G.add_edge(i, j, weight=weight)
+
+    # Plot the graph
+    fig, ax = plt.subplots(figsize=(8, 6))
+
+    # Draw the graph
+    pos = nx.spring_layout(G)  # Position nodes using spring layout
+    nx.draw(G, pos, with_labels=True, node_size=500,
+            node_color='lightblue', font_size=12, font_weight='bold', ax=ax)
+
+    # Draw the edge labels (weights)
+    edge_labels = nx.get_edge_attributes(G, 'weight')
+    nx.draw_networkx_edge_labels(
+        G, pos, edge_labels=edge_labels, font_size=12, ax=ax)
+
+    # Set title and display in Streamlit
+    ax.set_title(label)
+    st.pyplot(fig)
 
 
 class UnionFind:
@@ -104,6 +144,8 @@ def benchmark_algorithm(algorithm, graph, label):
     time_taken = (end_time - start_time) * 1000  # Convert to milliseconds
     memory_used = memory_in_mb(peak_memory)
 
+    draw_graph(result['mst_matrix'], label)
+
     print(f"{label} Results:")
     print(f"MST Cost: {result['mst_cost']}")
     print(f"Time Taken: {time_taken:.4f} ms")
@@ -117,28 +159,36 @@ def benchmark_algorithm(algorithm, graph, label):
 
 # Example Graphs
 graph1 = [
-    [0, 2, 0, 6, 0],
-    [2, 0, 3, 8, 5],
-    [0, 3, 0, 0, 7],
-    [6, 8, 0, 0, 9],
-    [0, 5, 7, 9, 0]
+    [0, 5, 1],
+    [5, 0, 4],
+    [1, 4, 0]
 ]
 
 graph2 = [
-    [0, 1, 4, 0, 0],
-    [1, 0, 4, 2, 7],
-    [4, 4, 0, 3, 5],
-    [0, 2, 3, 0, 4],
-    [0, 7, 5, 4, 0]
+    [0, 3, 0, 7],
+    [3, 0, 6, 0],
+    [0, 6, 0, 2],
+    [7, 0, 2, 0]
+]
+
+graph3 = [
+    [0, 8, 3, 0, 4],
+    [8, 0, 0, 7, 0],
+    [3, 0, 0, 2, 9],
+    [0, 7, 2, 0, 5],
+    [4, 0, 9, 5, 0]
 ]
 
 # Running and benchmarking the algorithms
 print("===== Prim's Algorithm Benchmarks =====")
 benchmark_algorithm(prims_algorithm, graph1, "Graph 1 - Prim's Algorithm")
 benchmark_algorithm(prims_algorithm, graph2, "Graph 2 - Prim's Algorithm")
+benchmark_algorithm(prims_algorithm, graph3, "Graph 3 - Prim's Algorithm")
 
 print("\n===== Kruskal's Algorithm Benchmarks =====")
 benchmark_algorithm(kruskals_algorithm, graph1,
                     "Graph 1 - Kruskal's Algorithm")
 benchmark_algorithm(kruskals_algorithm, graph2,
                     "Graph 2 - Kruskal's Algorithm")
+benchmark_algorithm(kruskals_algorithm, graph3,
+                    "Graph 3 - Kruskal's Algorithm")

@@ -143,26 +143,33 @@ function benchmarkAlgorithm(algorithm, graph, label) {
 
 // Example Graphs
 const graph1 = [
-    [0, 2, 0, 6, 0],
-    [2, 0, 3, 8, 5],
-    [0, 3, 0, 0, 7],
-    [6, 8, 0, 0, 9],
-    [0, 5, 7, 9, 0]
-];
+    [0, 4, 7],
+    [4, 0, 3],
+    [7, 3, 0]
+  ]
 
 const graph2 = [
-    [0, 1, 4, 0, 0],
-    [1, 0, 4, 2, 7],
-    [4, 4, 0, 3, 5],
-    [0, 2, 3, 0, 4],
-    [0, 7, 5, 4, 0]
-];
+    [0, 1, 0, 6],
+    [1, 0, 3, 0],
+    [0, 3, 0, 8],
+    [6, 0, 8, 0]
+  ]
+
+const graph3 = [
+    [0, 2, 0, 5, 3],
+    [2, 0, 1, 0, 4],
+    [0, 1, 0, 0, 7],
+    [5, 0, 0, 0, 9],
+    [3, 4, 7, 9, 0]
+  ]
 
 // Running and benchmarking the algorithms
 console.log("===== Prim's Algorithm Benchmarks =====");
 benchmarkAlgorithm(primsAlgorithm, graph1, "Graph 1 - Prim's Algorithm");
 benchmarkAlgorithm(primsAlgorithm, graph2, "Graph 2 - Prim's Algorithm");
+benchmarkAlgorithm(primsAlgorithm, graph3, "Graph 3 - Prim's Algorithm");
 
 console.log("\n===== Kruskal's Algorithm Benchmarks =====");
 benchmarkAlgorithm(kruskalsAlgorithm, graph1, "Graph 1 - Kruskal's Algorithm");
 benchmarkAlgorithm(kruskalsAlgorithm, graph2, "Graph 2 - Kruskal's Algorithm");
+benchmarkAlgorithm(kruskalsAlgorithm, graph3, "Graph 3 - Kruskal's Algorithm");
