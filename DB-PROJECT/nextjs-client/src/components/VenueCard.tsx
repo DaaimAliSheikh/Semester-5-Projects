@@ -1,5 +1,5 @@
 import { Venue } from "@/types";
-import {  useState } from "react";
+import { useState } from "react";
 
 import {
   Box,
@@ -74,7 +74,7 @@ const VenueCard = ({
             venue capacity: {venue.venue_capacity}
           </Typography>
           <Typography variant="body2" color="text.secondary">
-            venue price per day: {venue.venue_price_per_day}
+            venue price per day: $ {venue.venue_price_per_day}
           </Typography>
           <Box mt={2}>
             {averageRating > 0 ? (
