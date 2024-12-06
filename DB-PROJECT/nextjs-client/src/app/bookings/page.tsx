@@ -33,7 +33,6 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { AppBar, Box, Button, Stack, Toolbar, useTheme } from "@mui/material";
 import BookingForm from "@/components/BookingForm";
 import { useRouter } from "next/navigation";
-import { set } from "zod";
 
 const deleteBooking = async (booking_id: string) => {
   await api.delete("/bookings/" + booking_id);
