@@ -33,6 +33,7 @@ import { useAuthGuard } from "@/hooks/useAuthGuard";
 import { AppBar, Box, Button, Stack, Toolbar, useTheme } from "@mui/material";
 import BookingForm from "@/components/BookingForm";
 import { useRouter } from "next/navigation";
+import { set } from "zod";
 
 const deleteBooking = async (booking_id: string) => {
   await api.delete("/bookings/" + booking_id);
@@ -48,6 +49,8 @@ const actions = [
 const Bookings = () => {
   const [selectedId, setSelectedId] = React.useState<string[]>([]);
   const [open, setOpen] = React.useState(false);
+  const [selectedPayment, setSelectedPayment] =
+    React.useState<PaymentModel | null>(null);
   const [payments, setPayments] = React.useState<
     { booking_id: string; payment: PaymentModel }[]
   >([]);
@@ -112,7 +115,6 @@ const Bookings = () => {
 
   const handleSelectionChange = (id: any) => {
     setSelectedId(id);
-    console.log("Selected ID:", id);
   };
   const columns: GridColDef[] = [
     { field: "id", headerName: "ID", width: 320 },
@@ -180,8 +182,12 @@ const Bookings = () => {
       renderCell: (params) => (
         <Link
           onClick={(e) => {
-            if (selectedId.length > 0) e.stopPropagation();
+            e.stopPropagation();
             setPaymentOpen(true);
+            const p = payments.find(
+              (p) => p.payment.payment_id === params.value
+            );
+            setSelectedPayment(p?.payment || null);
           }}
           href="#"
           variant="body2"
@@ -325,7 +331,7 @@ const Bookings = () => {
         >
           <BookingForm
             bookingID={selectedId.length > 0 ? selectedId[0] : null}
-            loyaltyDiscount={Number(bookings?.length) > 1 ? 0.05 : 0}
+            loyaltyDiscount={Number(bookings?.length) > 0 ? 0.05 : 0}
             setOpen={setOpen}
           />
         </Dialog>
@@ -342,7 +348,11 @@ const Bookings = () => {
             variant="h6"
             color="primary"
           >
-            {"Payment Info for Booking ID: " + selectedId[0]}
+            {"Payment Info for Booking ID: " +
+              payments?.find(
+                ({ payment }) =>
+                  payment.payment_id === selectedPayment?.payment_id
+              )?.booking_id}
           </Typography>
           <List
             sx={{ width: "100%", maxWidth: 360, bgcolor: "background.paper" }}
@@ -350,53 +360,31 @@ const Bookings = () => {
             <ListItem>
               <ListItemText
                 primary="Payment ID"
-                secondary={
-                  payments?.find(
-                    ({ booking_id }) => booking_id === selectedId[0]
-                  )?.payment.payment_id
-                }
+                secondary={selectedPayment?.payment_id || "Not Available"}
               />
             </ListItem>
             <ListItem>
               <ListItemText
                 primary="Total Amount"
-                secondary={
-                  payments?.find(
-                    ({ booking_id }) => booking_id === selectedId[0]
-                  )?.payment.total_amount
-                }
+                secondary={selectedPayment?.total_amount || "Not Available"}
               />
             </ListItem>
             <ListItem>
               <ListItemText
                 primary="Discount"
-                secondary={
-                  (payments?.find(
-                    ({ booking_id }) => booking_id === selectedId[0]
-                  )?.payment.discount || 0) *
-                    100 +
-                  "%"
-                }
+                secondary={selectedPayment?.discount || "Not Available"}
               />
             </ListItem>
             <ListItem>
               <ListItemText
                 primary="Amount Payed"
-                secondary={
-                  payments?.find(
-                    ({ booking_id }) => booking_id === selectedId[0]
-                  )?.payment.amount_payed
-                }
+                secondary={selectedPayment?.amount_payed || "Not Available"}
               />
             </ListItem>
             <ListItem>
               <ListItemText
                 primary="Payment Method"
-                secondary={
-                  payments?.find(
-                    ({ booking_id }) => booking_id === selectedId[0]
-                  )?.payment.payment_method
-                }
+                secondary={selectedPayment?.payment_method || "Not Available"}
               />
             </ListItem>
           </List>

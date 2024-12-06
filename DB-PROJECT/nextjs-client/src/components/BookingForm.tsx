@@ -183,7 +183,6 @@ const BookingForm = ({
         ? await api.patch("/bookings/" + bookingID, body)
         : await api.post("/bookings", body);
 
-      console.log("sending data: ", response.data);
       //delete old car reservations
       booking?.car_reservations.forEach(async (reservation) => {
         await api.delete(
@@ -242,7 +241,7 @@ const BookingForm = ({
     // Calculate cost after discount
     const promo_id = getValues("promo_id");
     const promo = promos.find((p) => p.promo_id === promo_id);
-    let promo_discount = promo?.promo_discount || 0 + loyaltyDiscount;
+    let promo_discount = (promo?.promo_discount || 0) + loyaltyDiscount;
     promo_discount = Math.min(promo_discount, 1);
     const calculatedCostAfterDiscount = Math.ceil(
       calculatedTotal * (1 - promo_discount)
@@ -297,7 +296,6 @@ const BookingForm = ({
             <form
               onSubmit={handleSubmit(
                 async (data: CreateUserBookingFormValues) => {
-                  console.log(data);
                   await mutate(data);
                 }
               )}
