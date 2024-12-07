@@ -62,9 +62,8 @@ const BookingForm = ({
   const [promos, setPromos] = useState<PromoModel[]>([]);
   const [cars, setCars] = useState<CarModel[]>([]);
   const [booking, setBooking] = useState<BookingModel | null>(null);
-  const [dishesMappings, setDishesMappings] = useState<
-    { catering_id: string; dishes: DishModel[] }[]
-  >([]);
+  const [dishes, setDishes] = useState<DishModel[]>([]);
+
   const [totalCost, setTotalCost] = useState<number>(0);
   const [discountPercentage, setDiscountPercentage] = useState<number>(0);
   const [costAfterDiscount, setCostAfterDiscount] = useState<number>(0);
@@ -83,18 +82,21 @@ const BookingForm = ({
           decorationsData,
           promosData,
           carsData,
+          dishesData,
         ] = await Promise.all([
           fetchData("/venues"),
           fetchData("/caterings"),
           fetchData("/decorations"),
           fetchData("/promos"),
           fetchData("/cars"),
+          fetchData(`/caterings/dishes`),
         ]);
         setVenues(venuesData);
         setCaterings(cateringsData);
         setDecorations(decorationsData);
         setPromos(promosData);
         setCars(carsData);
+        setDishes(dishesData);
         if (bookingID) {
           const bookingData: BookingModel = await fetchData(
             "/bookings/" + bookingID
@@ -117,15 +119,6 @@ const BookingForm = ({
           setBooking(bookingData);
           return bookingData;
         }
-        const dishesMappings = await Promise.all(
-          cateringsData.map(async (catering: CateringModel) => {
-            return {
-              catering_id: catering.catering_id,
-              dishes: await fetchData(`/caterings/dishes`),
-            };
-          })
-        );
-        setDishesMappings(dishesMappings);
       } catch (error) {
         console.error("Failed to load data:", error);
       }
@@ -184,21 +177,23 @@ const BookingForm = ({
         : await api.post("/bookings", body);
 
       //delete old car reservations
-      booking?.car_reservations.forEach(async (reservation) => {
-        await api.delete(
-          `/cars/reservations/${reservation.car_reservation_id}`
-        );
-      });
+      if (bookingID) {
+        booking?.car_reservations.forEach(async (reservation) => {
+          await api.delete(
+            `/cars/reservations/${reservation.car_reservation_id}`
+          );
+        });
+      }
+
       //add new car reservations
       car_ids.forEach(async (car_id) => {
         await api.post(`/cars/${car_id}/${response.data.booking_id}`);
       });
+
       return response.data;
     },
-    onSettled: () => {
-      queryClient.invalidateQueries(["bookings", "me"]);
-    },
     onSuccess: () => {
+      queryClient.invalidateQueries(["bookings", "me"]);
       if (bookingID) setOpen(false);
     },
     /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -217,17 +212,11 @@ const BookingForm = ({
     const carPrices = cars.filter((car) =>
       getValues("car_ids").includes(car.car_id)
     );
-    const dishCostPerServing =
-      dishesMappings
-        .find(
-          (dishMapping) => dishMapping.catering_id === getValues("catering_id")
-        )
-        ?.dishes.reduce(
-          (total, dish) =>
-            total +
-            dish.dish_cost_per_serving * getValues("booking_guest_count"),
-          0
-        ) || 0;
+    const dishCostPerServing = dishes.reduce(
+      (total, dish) =>
+        total + dish.dish_cost_per_serving * getValues("booking_guest_count"),
+      0
+    );
 
     const carRentalPrice = carPrices.reduce(
       (total, car) => total + car.car_rental_price,
@@ -456,12 +445,15 @@ const BookingForm = ({
                       bgcolor: "background.paper",
                     }}
                   >
-                    {dishesMappings
-                      .find(
-                        (dishMapping) =>
-                          dishMapping.catering_id === getValues("catering_id")
+                    {dishes
+                      .filter(
+                        (d) =>
+                          !!d.catering_menu_items.find(
+                            (item) =>
+                              item.catering_id === getValues("catering_id")
+                          )
                       )
-                      ?.dishes.map((dish) => (
+                      .map((dish) => (
                         <ListItem key={dish.dish_id}>
                           <ListItemText
                             primary={dish.dish_name}

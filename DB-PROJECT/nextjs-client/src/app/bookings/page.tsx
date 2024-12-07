@@ -82,7 +82,6 @@ const Bookings = () => {
           }
         );
         const cars = await Promise.all(reservationPromises);
-
         return {
           ...booking,
           booking_date: new Date(booking.booking_date).toLocaleDateString(),
