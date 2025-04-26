@@ -7,7 +7,7 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: str = "default"
     ACCESS_TOKEN_EXPIRY: str = "3600"
     SERVER_BASE_URL: str = "http://localhost:8000"
-    CLIENT_BASE_URL: str = "http://localhost:5173"
+    CLIENT_BASE_URL: str = "*"
     # REDIS_URL: str = "redis://localhost:6379/0"
     # MAIL_USERNAME: str
     # MAIL_PASSWORD: str

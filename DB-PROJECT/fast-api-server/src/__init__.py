@@ -26,11 +26,10 @@ async def life_span(app: FastAPI):
 
 app = FastAPI(lifespan=life_span)
 
-
 app.add_middleware(
     CORSMiddleware,
     # Replace with your React app's URL
-    allow_origins=[str(Config.CLIENT_BASE_URL), "http://localhost:3001"],
+    allow_origins=[str(Config.CLIENT_BASE_URL)],
     allow_credentials=True,  # allow client to send cookies
     allow_methods=["*"],  # Allows all HTTP methods (GET, POST, etc.)
     allow_headers=["*"],  # Allows all headers
